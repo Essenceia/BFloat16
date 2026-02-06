@@ -85,25 +85,25 @@ assign {my_carry, mr} = {1'b1,mx} + ({M+1{op_sub}}^my_shift) + op_sub;
 // normalize: 2 bit shifter
 // if addition: division by 2 might be needed 
 // if substraction: multiplication by 2 might be needed 
-wire [M:0] mr_normal;
-wire [E-1:0] er_normal;
-wire         er_normal_carry;
+wire [M:0] mr_norm;
+wire [E-1:0] er_norm;
+wire         er_norm_carry;
 
 // a little ugly but useing a case to give more flexibility for optimization
 always @(*) begin
 	case(mr[M+1:M])
 		2'b00: begin // divide by 2
-			{er_normal_carry, er_normal} = er - {{E-2{1'b0}},1'b1};
-			mr_normal = {m_r[M-1:0], 1'b0}; // should I have kept the guard bit to inject it here?
+			{er_norm_carry, er_norm} = er - {{E-2{1'b0}},1'b1};
+			mr_norm = {m_r[M-1:0], 1'b0}; // should I have kept the guard bit to inject it here?
 		begin
 		2'b1X: begin // multiply by 2 
-			{er_normal_carry, er_normal} = er + {{E-2{1'b0}},1'b1};
-			mr_normal = {1'b0, m_r[M+1:1]}; 
+			{er_norm_carry, er_norm} = er + {{E-2{1'b0}},1'b1};
+			mr_norm = {1'b0, m_r[M+1:1]}; 
 		begin
 		default: begin
-			er_normal_carry = 1'b0;
-			er_normal = ex;
-			mr_normal = mr[M:0];
+			er_norm_carry = 1'b0;
+			er_norm = ex;
+			mr_norm = mr[M:0];
 		end
 	endcase
 end
@@ -134,9 +134,56 @@ assign mxy_cp_abs_diff = mxy_cp_diff_carry ? myx_cp_diff: // m_y - m_x
 											 mxy_cp_diff; // m_x - m_y
 
 // Leading zero count LZC 
+localparam LZC_W = $clog2(M+2);
+wire [LZC_W-1:0] zero_cnt;
+
+// TODO 
+
+// variable shift : renormalization 
+// using case again for synth
+wire [M+1:0] mz_cp_norm; 
+
+always_comb @(*) begin
+	case(msb_one_idx) begin
+		'd0: mz_cp_norm = mxy_cp_abs_diff; // no cancellation 
+		'd1: mz_cp_norm = {mxy_cp_abs_diff[M:0], 1'b0}; 
+		'd2: mz_cp_norm = {mxy_cp_abs_diff[M-1:0], 2'b0}; 
+		'd3: mz_cp_norm = {mxy_cp_abs_diff[M-2:0], 3'b0}; 
+		'd4: mz_cp_norm = {mxy_cp_abs_diff[M-3:0], 4'b0}; 
+		'd5: mz_cp_norm = {mxy_cp_abs_diff[M-4:0], 5'b0}; 
+		'd6: mz_cp_norm = {mxy_cp_abs_diff[M-5:0], 6'b0}; 
+		'd7: mz_cp_norm = {mxy_cp_abs_diff[M-6:0], 7'b0}; 
+		'd8: mz_cp_norm = {1'b1, 8'b0}; //only 1 left 
+		'd9: mz_cp_norm = {1'b1, {M+1{1'b0}}}; // full cancellation, nothing is left
+end
+
+// normalize exponent
+wire [E-1:0] ex_lzc_cp_diff;
+wire         ex_lxc_cp_diff_carry; 
+wire         ez_min_inf;
+wire [E-1:0] ez_cp_norm;
+
+assign {ex_lzc_cp_diff_carry, ex_lzc_cp_diff} = ex - {{E-LZC_W{1'b0}}, msb_one_idx}; 
+assign ez_min_inf = ex_lzc_cp_diff_carry;// detect undexflow, going to - e_min
+
+assign ez_cp_norm = {E{ez_min_inf}} & ex_lzc_cp_diff; 
+
+/* ---------------------------------
+ * select between close and far path
+ * --------------------------------- */
+wire fp_sel; 
+assign fp_sel = |exy_diff[E-1:1]; // diff > 1 
 
 
- 
+// TODO: handling corner cases : 
+//  - round subnormals to 0 
+//  - +/i inf
+
+// return
+assign s_o = // TODO
+assign e_o = fp_sel ? er_norm : ez_cp_norm;
+assign m_o = fp_sel ? mr_norm[M-1:0]: mz_cp_norm[M:1];
+
 `ifdef FORMAL
 
 always_comb begin
