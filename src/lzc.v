@@ -45,26 +45,31 @@ module lzc #(
 	);
 
 // first level, convert every leaf to there leading zero count
-wire [1:0] leaf_lzc[W/2-1:0];
+wire [W-1:0] leaf_lzc;
 genvar i;
 generate 
 	for(i = 0; i < W/2 ; i = i+i) : g_leaf_lzc
 		lzc_leaf m_leaf_lzc( 
 			.pair_i(data_i[2*i+1:2*i]),
-			.cnt_o(leaf_lzc[i])
+			.cnt_o(leaf_lzc[2*i+1:2*i])
 		);
 	end
 endgenerate
 
+wire [W-1:0] lzc_inner[I_W-2:0];
+assign lzc_inner[0] = leaf_lzc;
 // inner levels 
+genvar j;
 generate
-	for(i=2; i < I_W ; i= i+1): g_inner_lzc
+	for(i=2; i < I_W ; i= i+1): g_inner_lzc_lvl
+		for(j=0; j < $clog2(W)-2; j = j + 1): g_inner_lzc_span
 		lzc_inner #(.W(i))
 		m_inner_lzc (
-			.left_i(),
-			.right_i(),
-			.next_i()
+			.left_i(lzc_inner[i-2][]),
+			.right_i(lzc_inner[i-2][]),
+			.next_i(lzc_inner[i-1][])
 		);
+		end
 	end
 endgenerate
 
