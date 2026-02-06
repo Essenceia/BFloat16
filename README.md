@@ -10,6 +10,7 @@ subnormals so far as to round them to zero.
 Supported operations : 
 - addition/subtration
 - multiplication
+- round to zero rouding
 
 Usage assumptions:
 - inputs are bf16 
@@ -19,6 +20,7 @@ Limitations implied by design choices:
 - no NaN support: since no addition or multipliation can produce a NaN if no input is NaN, there is no explicit NaN support
 - no NaN signalling: corollary of above 
 - subnormals: all produced subnormals will be clamped to 0
+- no support for rounding modes appart from round to zero 
 
 ## BFloat16 
 

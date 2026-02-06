@@ -20,9 +20,9 @@ module bf16_add #(
 	input wire [M-1:0] mb_i,
 
 
-	output wire sa_i,
-	output wire [E-1:0] ea_i,
-	output wire [M-1:0] ma_i,
+	output wire s_o,
+	output wire [E-1:0] e_o,
+	output wire [M-1:0] m_o,
 );
 
 /* Internally the addition is performed on 
@@ -74,4 +74,51 @@ end
 assign shift_underflow = |exy_diff[E-1:3];
 assign my_shift = shift_underflow ? {M{1'b0}} : {1'b0, my_shift_lite};
 
+
+// operation can be either positive or negative: m_r = m_x +/- m_y 
+wire op_sub; 
+wire [M+1:0] mr;
+wire mr_carry;
+assign op_sub = sa_i ^ sb_i; 
+assign {my_carry, mr} = {1'b1,mx} + ({M+1{op_sub}}^my_shift) + op_sub;
+
+// normalize: 2 bit shifter
+// if addition: division by 2 might be needed 
+// if substraction: multiplication by 2 might be needed 
+wire [M:0] mr_normal;
+wire [E-1:0] er_normal;
+wire         er_normal_carry;
+
+// a little ugly byt useing a case to give more flexibility for optimization
+always @(*) begin
+	case(mr[M+1:M])
+		2'b00: begin // divide by 2
+			{er_normal_carry, er_normal} = er - {{E-2{1'b0}},1'b1};
+			mr_normal = {m_r[M-1:0], 1'b0}; // should I have kept the guard bit ?
+		begin
+		2'b1X: begin // multiply by 2 
+			{er_normal_carry, er_normal} = er + {{E-2{1'b0}},1'b1};
+			mr_normal = {1'b0, m_r[M+1:1]}; 
+		begin
+		default: begin
+			er_normal_carry = 1'b0;
+			er_normal = ex;
+			mr_normal = mr[M:0];
+		end
+	endcase
+end
+			 
+
+`ifdef FORMAL
+
+always_comb begin
+	// xcheck
+	sva_xcheck_i: assert( ~$isunknown({sa_i, ea_i, ma_i, sb_i, eb_i, mb_i});
+	sva_xcheck_o: assert( ~$isunknown({s_o, e_o, m_o});
+
+	// assertions 
+	sva_swap_geq_exp: assert(mx >= my);
+end
+
+`endif
 endmodule
