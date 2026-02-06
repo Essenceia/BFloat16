@@ -89,12 +89,12 @@ wire [M:0] mr_normal;
 wire [E-1:0] er_normal;
 wire         er_normal_carry;
 
-// a little ugly byt useing a case to give more flexibility for optimization
+// a little ugly but useing a case to give more flexibility for optimization
 always @(*) begin
 	case(mr[M+1:M])
 		2'b00: begin // divide by 2
 			{er_normal_carry, er_normal} = er - {{E-2{1'b0}},1'b1};
-			mr_normal = {m_r[M-1:0], 1'b0}; // should I have kept the guard bit ?
+			mr_normal = {m_r[M-1:0], 1'b0}; // should I have kept the guard bit to inject it here?
 		begin
 		2'b1X: begin // multiply by 2 
 			{er_normal_carry, er_normal} = er + {{E-2{1'b0}},1'b1};
@@ -108,7 +108,35 @@ always @(*) begin
 	endcase
 end
 			 
+/* ---------
+ * close path 
+ * ---------- */
 
+// 1 bit shift
+wire exy_eq; 
+wire [M+1:0] my_cp_shifted; // p+1 width, including hidden 1
+wire [M+1:0] mx_cp; 
+
+assign exy_eq = ~eab_diff_carry & ~eba_diff_carry; // 1 = equal, 0 = not equal 
+assign my_cp_shifted = exy_eq ? {1'b1, my, 1'b0} : 
+								{1'b0, 1'b1, my}; // div 2, e_x - e_y = 1, e_x - e_y > 1 will be handed by far path  
+assign mx_cp = { 1'b1, mx, 1'b0};
+
+// absolute difference between significants 
+wire [M+1:0] mxy_cp_abs_diff;
+wire [M+1:0] mxy_cp_diff, myx_cp_diff;
+wire         mxy_cp_diff_carry, myx_cp_diff_carry;
+
+assign {mxy_cp_diff_carry, mxy_cp_diff} = mx_cp - my_cp; 
+assign {myx_cp_diff_carry, myx_cp_diff} = my_cp - mx_cp; 
+
+assign mxy_cp_abs_diff = mxy_cp_diff_carry ? myx_cp_diff: // m_y - m_x
+											 mxy_cp_diff; // m_x - m_y
+
+// Leading zero count LZC 
+
+
+ 
 `ifdef FORMAL
 
 always_comb begin
