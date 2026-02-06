@@ -63,16 +63,18 @@ genvar j;
 generate
 	for(i=2; i < I_W ; i= i+1): g_inner_lzc_lvl
 		for(j=0; j < $clog2(W)-2; j = j + 1): g_inner_lzc_span
+		// left/right is a pair of 2*i bits
 		lzc_inner #(.W(i))
 		m_inner_lzc (
-			.left_i(lzc_inner[i-2][]),
-			.right_i(lzc_inner[i-2][]),
-			.next_i(lzc_inner[i-1][])
+			.left_i (lzc_inner[i-2][2*i*(j+1)+:i]),
+			.right_i(lzc_inner[i-2][2*i*j+:i]),
+			.next_i (lzc_inner[i-1][(i+1)*j+:i+1])
 		);
 		end
 	end
 endgenerate
 
+assign cnt_o = lzc_inner[I_W-2][I_W-1:0];
 endmodule
 
 
