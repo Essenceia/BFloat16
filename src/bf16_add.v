@@ -50,64 +50,62 @@ assign {mx, my} = ~eab_diff_carry? {ma_i, mb_i}: {mb_i, ma_i};
    far path  
    -------- */
 // stupidly expensive shifter made a little cheaper by the fact we only need
-// M+1 bits in the end and that the close path handles the 0 and 1 difference
-// case
-// exy_diff is strickly positive
-wire [M-2:0] my_shift_lite;
-wire [M:0]   my_shift;
-wire         shift_underflow; 
+// p+1 bits since we are doing a round to zero, we can discard the sticky bit
+wire [M+1:0] my_shift;
 
 always @(*) begin
-	case(exy_diff[2:0])
-		2: my_shift_lite = {1'b1, my[M-1:2]};
-		3: my_shift_lite = {1'b0, 1'b1, my[M-1:3]};
-		4: my_shift_lite = {2'b0, 1'b1, my[M-1:4]};
-		5: my_shift_lite = {3'b0, 1'b1, my[M-1:5]};
-		6: my_shift_lite = {4'b0, 1'b1, my[6]};
-		7: my_shift_lite = {5'b0, 1'b1};
-		default: my_shift_lite = {M-1{1'bX}};// handled by close path, don't care, letting the optimization do what it wants
+	case(exy_diff)
+		0: my_shift = {1'b1, my, 1'b0};
+		1: my_shift = {1'b1, 1'b0, my};
+		2: my_shift = {1'b1, 2'b0, my[M-1:1]};
+		3: my_shift = {1'b1, 3'b0, my[M-1:2]};
+		4: my_shift = {1'b1, 4'b0, my[M-1:3]};
+		5: my_shift = {1'b1, 5'b0, my[M-1:4]};
+		6: my_shift = {1'b1, 6'b0, my[M-1:5]};
+		7: my_shift = {1'b1, 7'b0, my[6]};
+		default: my_shift = {1'b1, 8'b0}; // 8+, sel is only on bottom 3 bits of exy_diff, else clamp to 0 
 	endcase
 end
 
-// detect if we have shifted more than the entire significant's worth, shift
-// > 7 
-assign shift_underflow = |exy_diff[E-1:3];
-assign my_shift = shift_underflow ? {M{1'b0}} : {1'b0, my_shift_lite};
 
-
-// operation can be either positive or negative: m_r = m_x +/- m_y 
+// operation can be either positive or negative: m_r = m_x +/- m_y
+// since we won't be doing the common rouding post normalization to save on
+// the need to have a W+E wide adder, our addition will be done on p+1 bits
+// unlike the p bits commonly found in the litterature
 wire op_sub; 
 wire [M+1:0] mr;
 wire mr_carry;
 assign op_sub = sa_i ^ sb_i; 
-assign {my_carry, mr} = {1'b1,mx} + ({M+1{op_sub}}^my_shift) + op_sub;
+assign {my_carry, mr} = {1'b1,mx, 1'b0} + ({M+2{op_sub}}^my_shift) + op_sub;
 
 // normalize: 2 bit shifter
 // if addition: division by 2 might be needed 
 // if substraction: multiplication by 2 might be needed 
-wire [M:0] mr_norm;
+wire [M+1:0] mr_prenorm;
+wire [M-1:0] mr_norm;// removing hidden 1 and extra lsb
 wire [E-1:0] er_norm;
 wire         er_norm_carry;
 
 // a little ugly but useing a case to give more flexibility for optimization
 always @(*) begin
-	case(mr[M+1:M])
+	case(my_carry, mr[M+1])
 		2'b00: begin // divide by 2
 			{er_norm_carry, er_norm} = er - {{E-2{1'b0}},1'b1};
-			mr_norm = {m_r[M-1:0], 1'b0}; // should I have kept the guard bit to inject it here?
+			mr_prenorm = {m_r[M:0], 1'b0}; // left shift 1, inject round bit
 		end
 		2'b1X: begin // multiply by 2 
 			{er_norm_carry, er_norm} = er + {{E-2{1'b0}},1'b1};
-			mr_norm = {1'b0, m_r[M+1:1]}; 
+			mr_prenorm = {1'b0, m_r[M+1:1]}; // right shit 1
 		end
 		default: begin
 			er_norm_carry = 1'b0;
 			er_norm = ex;
-			mr_norm = mr[M:0];
+			mr_prenorm = mr;
 		end
 	endcase
 end
-			 
+assign mr_norm = mp_prenorm[M-1:1];
+
 /* ---------
  * close path 
  * ---------- */
@@ -135,16 +133,23 @@ assign mxy_cp_abs_diff = mxy_cp_diff_carry ? myx_cp_diff: // m_y - m_x
 
 // Leading zero count LZC 
 localparam LZC_W = $clog2(M+2);
+localparam LZC_V_W = $pow(2,LZC_W);
 wire [LZC_W-1:0] zero_cnt;
+wire [LZC_V_W-1:0] lzc_data;
 
-// TODO 
+assign lzc_data = { mxy_cp_abs_diff, {LZC_V_W-(M+2){1'b1}}};
+
+lzc #(.W(LZC_V_W)) m_lzc (
+	.data_i(lzc_data),	
+	.cnt_o(zero_cnt)
+);
 
 // variable shift : renormalization 
 // using case again for synth
 wire [M+1:0] mz_cp_norm; 
 
 always_comb @(*) begin
-	case(msb_one_idx) 
+	case(zero_cnt) 
 		'd0: mz_cp_norm = mxy_cp_abs_diff; // no cancellation 
 		'd1: mz_cp_norm = {mxy_cp_abs_diff[M:0], 1'b0}; 
 		'd2: mz_cp_norm = {mxy_cp_abs_diff[M-1:0], 2'b0}; 
@@ -154,7 +159,9 @@ always_comb @(*) begin
 		'd6: mz_cp_norm = {mxy_cp_abs_diff[M-5:0], 6'b0}; 
 		'd7: mz_cp_norm = {mxy_cp_abs_diff[M-6:0], 7'b0}; 
 		'd8: mz_cp_norm = {1'b1, 8'b0}; //only 1 left 
-		'd9: mz_cp_norm = {1'b1, {M+1{1'b0}}}; // full cancellation, nothing is left
+		default: mz_cp_norm = {1'b1,{M+2{1'b0}}}}; // full cancellation, nothing is left, made the same as the 8 case
+												   // could fuse 8 and default case to have mux sel be done
+												   // only on bottom 3 bits ?
 	endcase
 end
 
