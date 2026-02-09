@@ -38,7 +38,7 @@ endmodule
 
 module lzc #(
 	parameter int W = 4,
-	localparam int I_W = $clog2((W + 1))
+	parameter int I_W = $clog2((W + 1)) // default counter assumes W is fully utilized as data
 	)(
 	input wire  [W-1:0]   data_i,
 	output wire [I_W-1:0] cnt_o
