@@ -15,15 +15,21 @@ assign cnt_o[1] = ~pair_i[1] & ~pair_i[0]; // pair == 00
 assign cnt_o[0] = ~pair_i[1] & pair_i[0]; // pair == 01
 endmodule; 
 
-/* Inner tree levels */ 
+/* Inner tree levels
+ *
+ * break "circular logic" dependancy: this logic isn't circular in the synthesis sense
+ * but is circular from the IEEE event model analyses events perspective. Events are
+ * analysed per signal and not per bit.
+ */
 module lzc_inner #(
 	parameter W = 2
 )(
 
 	input wire [W-1:0] left_i,
 	input wire [W-1:0] right_i,
-
+/* verilator lint_off UNOPTFLAT */
 	output wire [W:0]  next_o
+/* verilator lint_on UNOPTFLAT */
 );
 wire lmsb, rmsb; 
 
@@ -56,8 +62,9 @@ generate
 	end
 endgenerate
 
-wire [W-1:0] lzc_inner[I_W-2:0];
-assign lzc_inner[0] = leaf_lzc;
+wire [W-1:0] lzc_tree[I_W-2:0];
+assign lzc_tree[0] = leaf_lzc;
+
 // inner levels 
 genvar j;
 generate
@@ -66,15 +73,15 @@ generate
 		// left/right is a pair of 2*i bits
 		lzc_inner #(.W(i))
 		m_inner_lzc (
-			.left_i (lzc_inner[i-2][2*i*j+i-1+:i]),
-			.right_i(lzc_inner[i-2][2*i*j+:i]),
-			.next_o (lzc_inner[i-1][(i+1)*j+i+:i+1])
+			.left_i (lzc_tree[i-2][2*i*j+i-1+:i]),
+			.right_i(lzc_tree[i-2][2*i*j+:i]),
+			.next_o (lzc_tree[i-1][(i+1)*j+i+:i+1])
 		);
 		end
 	end
 endgenerate
 
-assign cnt_o = lzc_inner[I_W-2][I_W-1:0];
+assign cnt_o = lzc_tree[I_W-2][I_W-1:0];
 endmodule
 
 
