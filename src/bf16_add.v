@@ -88,7 +88,7 @@ wire         er_norm_carry;
 
 // a little ugly but useing a case to give more flexibility for optimization
 always @(*) begin
-	case(my_carry, mr[M+1])
+	case({my_carry, mr[M+1]})
 		2'b00: begin // divide by 2
 			{er_norm_carry, er_norm} = er - {{E-2{1'b0}},1'b1};
 			mr_prenorm = {m_r[M:0], 1'b0}; // left shift 1, inject round bit
@@ -159,7 +159,7 @@ always_comb @(*) begin
 		'd6: mz_cp_norm = {mxy_cp_abs_diff[M-5:0], 6'b0}; 
 		'd7: mz_cp_norm = {mxy_cp_abs_diff[M-6:0], 7'b0}; 
 		'd8: mz_cp_norm = {1'b1, 8'b0}; //only 1 left 
-		default: mz_cp_norm = {1'b1,{M+2{1'b0}}}}; // full cancellation, nothing is left, made the same as the 8 case
+		default: mz_cp_norm = {1'b1,{M+2{1'b0}}}; // full cancellation, nothing is left, made the same as the 8 case
 												   // could fuse 8 and default case to have mux sel be done
 												   // only on bottom 3 bits ?
 	endcase

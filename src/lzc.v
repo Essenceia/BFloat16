@@ -48,7 +48,7 @@ module lzc #(
 wire [W-1:0] leaf_lzc;
 genvar i;
 generate 
-	for(i = 0; i < W/2 ; i = i+i) : g_leaf_lzc
+	for(i = 0; i < W/2 ; i = i+i)begin : g_leaf_lzc
 		lzc_leaf m_leaf_lzc( 
 			.pair_i(data_i[2*i+1:2*i]),
 			.cnt_o(leaf_lzc[2*i+1:2*i])
@@ -61,8 +61,8 @@ assign lzc_inner[0] = leaf_lzc;
 // inner levels 
 genvar j;
 generate
-	for(i=2; i < I_W ; i= i+1): g_inner_lzc_lvl
-		for(j=0; j < $clog2(W)-2; j = j + 1): g_inner_lzc_span
+	for(i=2; i < I_W ; i= i+1)begin: g_inner_lzc_lvl
+		for(j=0; j < $clog2(W)-2; j = j + 1)begin: g_inner_lzc_span
 		// left/right is a pair of 2*i bits
 		lzc_inner #(.W(i))
 		m_inner_lzc (

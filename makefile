@@ -1,3 +1,30 @@
+###########
+# Configs #
+###########
+
+ifndef debug
+debug :=
+endif
+
+ifndef wireshark
+wireshark:=
+endif
+
+# Enable waves by default
+ifndef wave
+wave:=1
+endif
+
+# Coverage, enabled by default
+ifndef cov
+cov:=1
+endif
+
+# Asserts, enabled by default
+ifndef assert
+assert:=1
+endif
+
 ############
 # Sim type #
 ############
@@ -62,10 +89,81 @@ $(info Top set to: $(TOP))
 lint: $(entry_deps)
 	$(call LINT,$^,$(TOP))
 
+###############
+# Build flags #
+###############
+
+# Build variables.
+ifeq ($(SIM),I)
+BUILD_DIR := build
+BUILD_FLAGS := $(if $(wave),-DWAVE)  
+BUILD_FLAGS += $(if $(assert),,-DINTERACTIVE)  
+else
+BUILD_DIR := obj_dir
+BUILD_FLAGS := 
+BUILD_FLAGS += $(if $(assert),--assert)
+BUILD_FLAGS += $(if $(wave), --trace --trace-underscore) 
+BUILD_FLAGS += $(if $(cov), --coverage --coverage-underscore) 
+BUILD_FLAGS += --timing
+BUILD_FLAGS += --x-initial-edge
+MAKE_THREADS = 4 
+BUILD_FLAGS += -j $(MAKE_THREADS)
+endif
+
+
+#########
+# Build #
+#########
+
+# Build commands.
+ifeq ($(SIM),I)
+define BUILD
+	mkdir -p build
+	iverilog $(LINT_FLAGS) -s $2 $(BUILD_FLAGS) -o $(BUILD_DIR)/$2 $1
+endef
+else
+define BUILD
+	mkdir -p build
+	verilator --binary $(LINT_FLAGS) -j 0 $(BUILD_FLAGS) -o $2 $1  
+endef
+endif
+
+#############
+# Testbench #
+#############
+
+# The list of testbenches.
+tbs := lzc
+
+# Dependencies for each testbench
+lzc_deps += $(TB_DIR)/lzc_tb.sv
+
+# Standard run recipe to build a given testbench
+define build_recipe
+$1_tb: $$($(1)_deps)
+	$$(call BUILD,$$^,$$@)
+
+endef
+
+# Standard run recipe to run a given testbench
+define run_recipe
+run_$1: $1_tb
+	$$(call RUN,$$^)
+
+endef
+
+# Generate run recipes for each testbench.
+$(eval $(foreach x,$(tbs),$(call run_recipe,$x)))
+
+
+# Generate build recipes for each testbench.
+$(eval $(foreach x,$(tbs),$(call build_recipe,$x)))
+
+
 # Cleanup
 clean:
 	rm -f vgcore.* vgd.log*
 	rm -f callgrind.out.*
 	rm -fr $(WAVE_DIR)/*
-	$(MAKE) -C $(FPGA_DIR) clean
-
+	rm -fr build/*
+	$(MAKE) -C $(FPGA_DIR) clean#
