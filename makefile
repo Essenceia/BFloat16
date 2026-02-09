@@ -137,7 +137,7 @@ endif
 tbs := lzc
 
 # Dependencies for each testbench
-lzc_deps += $(TB_DIR)/lzc_tb.sv
+lzc_deps += $(TB_DIR)/lzc_tb.sv $(SRC_DIR)/lzc.v
 
 # Standard run recipe to build a given testbench
 define build_recipe

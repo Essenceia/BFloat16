@@ -142,13 +142,14 @@ assign mxy_cp_abs_diff = mxy_cp_diff_carry ? myx_cp_diff: // m_y - m_x
 localparam int LZC_W = $clog2(M+3);
 localparam int LZC_V_W = $pow(2, $clog2(M+2));
 wire [LZC_W-1:0] zero_cnt;
+wire             zero_cnt_unused;
 wire [LZC_V_W-1:0] lzc_data;
 
 assign lzc_data = { mxy_cp_abs_diff, {LZC_V_W-(M+2){1'b1}}};
 
-lzc #(.W(LZC_V_W), .I_W(LZC_W)) m_lzc (
+lzc #(.W(LZC_V_W)) m_lzc (
 	.data_i(lzc_data),	
-	.cnt_o(zero_cnt)
+	.cnt_o({zero_cnt_unused, zero_cnt})
 );
 
 // variable shift : renormalization 
