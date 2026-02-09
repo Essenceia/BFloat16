@@ -38,7 +38,7 @@ endmodule
 
 module lzc #(
 	parameter int W = 4,
-	parameter int I_W = $clog2((W + 1)) // default counter assumes W is fully utilized as data
+	parameter int I_W = $clog2((W + 1)) // cover W case, need +1 bits
 	)(
 	input wire  [W-1:0]   data_i,
 	output wire [I_W-1:0] cnt_o
@@ -62,13 +62,13 @@ assign lzc_inner[0] = leaf_lzc;
 genvar j;
 generate
 	for(i=2; i < I_W ; i= i+1)begin: g_inner_lzc_lvl
-		for(j=0; j < $clog2(W)-2; j = j + 1)begin: g_inner_lzc_span
+		for(j=0; j < $rtoi($pow(2,I_W-i-1)); j = j + 1)begin: g_inner_lzc_span
 		// left/right is a pair of 2*i bits
 		lzc_inner #(.W(i))
 		m_inner_lzc (
-			.left_i (lzc_inner[i-2][2*i*(j+1)+:i]),
+			.left_i (lzc_inner[i-2][2*i*j+i-1+:i]),
 			.right_i(lzc_inner[i-2][2*i*j+:i]),
-			.next_o (lzc_inner[i-1][(i+1)*j+:i+1])
+			.next_o (lzc_inner[i-1][(i+1)*j+i+:i+1])
 		);
 		end
 	end

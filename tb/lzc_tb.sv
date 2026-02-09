@@ -1,11 +1,11 @@
 // Leading Zero Count Testbench 
 
 module lzc_tb; 
-localparam W = 12; 
-localparam CNT_W = $clog2(W);
+localparam W = 16; 
+localparam CNT_W = $clog2(W+1);
 
-wire [W-1:0] data;
-wire [CNT_W-1:0] cnt;
+logic [W-1:0] data;
+logic [CNT_W-1:0] cnt;
 
 
 // simple test, send thermometers 
