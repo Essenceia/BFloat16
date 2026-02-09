@@ -37,8 +37,8 @@ assign next_o = ~lmsb ? { 1'b0, left_i } :
 endmodule
 
 module lzc #(
-	parameter  W = 4,
-	localparam I_W = $clog2(W+1)
+	parameter int W = 4,
+	localparam int I_W = $clog2((W + 1))
 	)(
 	input wire  [W-1:0]   data_i,
 	output wire [I_W-1:0] cnt_o
@@ -48,7 +48,7 @@ module lzc #(
 wire [W-1:0] leaf_lzc;
 genvar i;
 generate 
-	for(i = 0; i < W/2 ; i = i+i)begin : g_leaf_lzc
+	for(i = 0; i < W/2 ; i = i+1)begin : g_leaf_lzc
 		lzc_leaf m_leaf_lzc( 
 			.pair_i(data_i[2*i+1:2*i]),
 			.cnt_o(leaf_lzc[2*i+1:2*i])
