@@ -12,7 +12,7 @@ module lzc_leaf (
 );
 
 assign cnt_o[1] = ~pair_i[1] & ~pair_i[0]; // pair == 00
-assign cnt_o[0] = ~pair_i[1] & pait_i[0]; // pair == 01
+assign cnt_o[0] = ~pair_i[1] & pair_i[0]; // pair == 01
 endmodule; 
 
 /* Inner tree levels */ 
@@ -68,7 +68,7 @@ generate
 		m_inner_lzc (
 			.left_i (lzc_inner[i-2][2*i*(j+1)+:i]),
 			.right_i(lzc_inner[i-2][2*i*j+:i]),
-			.next_i (lzc_inner[i-1][(i+1)*j+:i+1])
+			.next_o (lzc_inner[i-1][(i+1)*j+:i+1])
 		);
 		end
 	end

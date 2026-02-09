@@ -14,7 +14,7 @@ task check_thermo();
 	#10
 	assert(cnt == 'd0);
 	for(int i=1; i < W; i++) begin
-		data = {i{1'b0}}, {W-i{1'b1}};
+		data = {{i{1'b0}}, {W-i{1'b1}}};
 		#10 
 		assert(cnt == i);
 	end

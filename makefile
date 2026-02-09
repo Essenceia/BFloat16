@@ -39,12 +39,13 @@ $(info Using simulator: $(SIM))
 
 # Global configs.
 SRC_DIR := src
+TB_DIR := tb
 CONF := conf
 DEBUG_FLAG := $(if $(debug), debug=1)
 DEFINES := $(if $(wave),wave=1)
 WAIVER_FILE := waiver.vlt
 WAVE_DIR := waves
-TOP := $(if $(top),$(top),b16_add)
+TOP := $(if $(top),$(top),bf16_add)
 
 .PHONY: lint
 

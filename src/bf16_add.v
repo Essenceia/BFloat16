@@ -90,12 +90,12 @@ wire         er_norm_carry;
 always @(*) begin
 	case({my_carry, mr[M+1]})
 		2'b00: begin // divide by 2
-			{er_norm_carry, er_norm} = er - {{E-2{1'b0}},1'b1};
-			mr_prenorm = {m_r[M:0], 1'b0}; // left shift 1, inject round bit
+			{er_norm_carry, er_norm} = ex - {{E-2{1'b0}},1'b1};
+			mr_prenorm = {mr[M:0], 1'b0}; // left shift 1, inject round bit
 		end
 		2'b1X: begin // multiply by 2 
-			{er_norm_carry, er_norm} = er + {{E-2{1'b0}},1'b1};
-			mr_prenorm = {1'b0, m_r[M+1:1]}; // right shit 1
+			{er_norm_carry, er_norm} = ex + {{E-2{1'b0}},1'b1};
+			mr_prenorm = {1'b0, mr[M+1:1]}; // right shit 1
 		end
 		default: begin
 			er_norm_carry = 1'b0;
@@ -104,7 +104,7 @@ always @(*) begin
 		end
 	endcase
 end
-assign mr_norm = mp_prenorm[M-1:1];
+assign mr_norm = mr_prenorm[M-1:1];
 
 /* ---------
  * close path 
@@ -125,8 +125,8 @@ wire [M+1:0] mxy_cp_abs_diff;
 wire [M+1:0] mxy_cp_diff, myx_cp_diff;
 wire         mxy_cp_diff_carry, myx_cp_diff_carry;
 
-assign {mxy_cp_diff_carry, mxy_cp_diff} = mx_cp - my_cp; 
-assign {myx_cp_diff_carry, myx_cp_diff} = my_cp - mx_cp; 
+assign {mxy_cp_diff_carry, mxy_cp_diff} = mx_cp - my_cp_shifted; 
+assign {myx_cp_diff_carry, myx_cp_diff} = my_cp_shifted - mx_cp; 
 
 assign mxy_cp_abs_diff = mxy_cp_diff_carry ? myx_cp_diff: // m_y - m_x
 											 mxy_cp_diff; // m_x - m_y
@@ -148,7 +148,7 @@ lzc #(.W(LZC_V_W)) m_lzc (
 // using case again for synth
 wire [M+1:0] mz_cp_norm; 
 
-always_comb @(*) begin
+always_comb begin
 	case(zero_cnt) 
 		'd0: mz_cp_norm = mxy_cp_abs_diff; // no cancellation 
 		'd1: mz_cp_norm = {mxy_cp_abs_diff[M:0], 1'b0}; 
@@ -171,7 +171,7 @@ wire         ex_lxc_cp_diff_carry;
 wire         ez_min_inf;
 wire [E-1:0] ez_cp_norm;
 
-assign {ex_lzc_cp_diff_carry, ex_lzc_cp_diff} = ex - {{E-LZC_W{1'b0}}, msb_one_idx}; 
+assign {ex_lzc_cp_diff_carry, ex_lzc_cp_diff} = ex - {{E-LZC_W{1'b0}}, zero_cnt}; 
 assign ez_min_inf = ex_lzc_cp_diff_carry;// detect undexflow, going to - e_min
 
 assign ez_cp_norm = {E{ez_min_inf}} & ex_lzc_cp_diff; 
