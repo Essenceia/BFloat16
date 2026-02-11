@@ -13,7 +13,7 @@ task check_thermo();
 	int tmp;
 	data = {W{1'b1}};
 	#10
-	assert(cnt == 'd0);
+	sva_thermo_0: assert(cnt == 'd0);
 	for(int i=1; i < W; i++) begin
 		tmp = $rtoi($pow(2,i));
 		/* verilator lint_off WIDTHTRUNC */
@@ -21,12 +21,12 @@ task check_thermo();
 		/* verilator lint_on WIDTHTRUNC */
 		#10 
 		/* verilator lint_off WIDTHEXPAND */
-		assert(cnt == W-i);
+		sva_thermo_var: assert(cnt == W-i);
 		/* verilator lint_on WIDTHEXPAND */
 	end
 	data = {W{1'b0}};
 	#10 
-	assert(cnt == W);
+	sva_thermo_max: assert(cnt == W);
 endtask
 
 initial begin
