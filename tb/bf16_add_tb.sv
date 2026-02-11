@@ -37,6 +37,8 @@ task test_zero();
 
 	#10
 	`sva_check_bf16(c, 0, '0, '0);
+
+	$display("test_zero: PASS");
 endtask 
 
 initial begin
@@ -44,6 +46,8 @@ initial begin
 	$dumpvars(0, bf16_add_tb);
 
 	$urandom(`RAND_SEED);
+
+	test_zero();
 	
 	$finish; 
 end
