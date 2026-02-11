@@ -129,6 +129,28 @@ define BUILD
 endef
 endif
 
+#######
+# Run #
+#######
+
+# Run commands.
+ifeq ($(SIM),I)
+define RUN
+	vvp $(BUILD_DIR)/$1
+endef
+define RUN_VPI
+	vvp -M $(VPI_DIR)/$(BUILD_VPI_DIR) -mtb $(BUILD_DIR)/$1
+endef
+else
+define RUN
+	./$(BUILD_DIR)/$1 $(if $(wave),+trace) 
+endef
+define RUN_VPI
+	$(call RUN,$1)
+endef
+endif
+
+
 #############
 # Testbench #
 #############
