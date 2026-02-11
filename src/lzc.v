@@ -22,7 +22,7 @@ endmodule;
  * analysed per signal and not per bit.
  */
 module lzc_inner #(
-	parameter W = 2
+	parameter int W = 2
 )(
 
 	input wire [W-1:0] left_i,
@@ -73,9 +73,9 @@ generate
 		// left/right is a pair of 2*i bits
 		lzc_inner #(.W(i))
 		m_inner_lzc (
-			.left_i (lzc_tree[i-2][2*i*j+i-1+:i]),
+			.left_i (lzc_tree[i-2][2*i*j+i+:i]),
 			.right_i(lzc_tree[i-2][2*i*j+:i]),
-			.next_o (lzc_tree[i-1][(i+1)*j+i+:i+1])
+			.next_o (lzc_tree[i-1][(i+1)*j+:i+1])
 		);
 		end
 	end

@@ -44,7 +44,7 @@ CONF := conf
 DEBUG_FLAG := $(if $(debug), debug=1)
 DEFINES := $(if $(wave),wave=1)
 WAIVER_FILE := waiver.vlt
-WAVE_DIR := waves
+WAVE_DIR := wave
 TOP := $(if $(top),$(top),bf16_add)
 
 .PHONY: lint
@@ -119,12 +119,14 @@ endif
 # Build commands.
 ifeq ($(SIM),I)
 define BUILD
-	mkdir -p build
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(WAIVER_FILE)
 	iverilog $(LINT_FLAGS) -s $2 $(BUILD_FLAGS) -o $(BUILD_DIR)/$2 $1
 endef
 else
 define BUILD
-	mkdir -p build
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(WAIVER_FILE)
 	verilator --binary $(LINT_FLAGS) -j 0 $(BUILD_FLAGS) -o $2 $1  
 endef
 endif
@@ -189,4 +191,5 @@ clean:
 	rm -f callgrind.out.*
 	rm -fr $(WAVE_DIR)/*
 	rm -fr build/*
+	rm -fr obj_dir/*
 	$(MAKE) -C $(FPGA_DIR) clean#
