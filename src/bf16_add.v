@@ -140,7 +140,7 @@ assign mxy_cp_abs_diff = mxy_cp_diff_carry ? myx_cp_diff: // m_y - m_x
 
 // Leading zero count LZC 
 localparam int LZC_W = $clog2(M+3);
-localparam int LZC_V_W = $pow(2, $clog2(M+2));
+localparam int LZC_V_W = $rtoi($pow(2, $clog2(M+2)));
 wire [LZC_W-1:0] zero_cnt;
 wire             zero_cnt_unused;
 wire [LZC_V_W-1:0] lzc_data;

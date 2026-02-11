@@ -158,10 +158,11 @@ endif
 #############
 
 # The list of testbenches.
-tbs := lzc
+tbs := lzc bf16_add
 
 # Dependencies for each testbench
 lzc_deps += $(TB_DIR)/lzc_tb.sv $(SRC_DIR)/lzc.v
+bf16_add_deps += $(TB_DIR)/bf16_add_tb.sv $(SRC_DIR)/lzc.v $(SRC_DIR)/bf16_add.v
 
 # Standard run recipe to build a given testbench
 define build_recipe
