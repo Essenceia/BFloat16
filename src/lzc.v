@@ -37,9 +37,9 @@ assign lmsb = left_i[W-1];
 assign rmsb = right_i[W-1];
 
 // this is where the magic happens
-assign next_o = ~lmsb ? { 1'b0, left_i } : 
+assign next_o = ~lmsb ? { 2'b0, left_i[W-2:0] } : 
 				 rmsb ? { 1'b1, {W{1'b0}}}:
-						{ 1'b1, right_i};
+						{ 2'b01, right_i[W-2:0]};
 endmodule
 
 module lzc #(
