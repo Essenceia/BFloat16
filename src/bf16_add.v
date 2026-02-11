@@ -74,10 +74,12 @@ end
 // unlike the p bits commonly found in the litterature
 wire op_sub;
 wire [M+1:0] mr;
+wire [M+1:0] my_shift_neg;
 wire mr_carry;
 assign op_sub = sa_i ^ sb_i; 
+assign my_shift_neg  = {M+2{op_sub}} ^ my_shift;
 assign {mr_carry, mr} = {1'b1, mx, 1'b0} // 9
-					  + ({M+2{op_sub}}^my_shift) 
+					  + my_shift_neg
                       + {{M+1{1'b0}}, op_sub}; // 9
 
 // normalize: 2 bit shifter
@@ -90,7 +92,9 @@ logic [M+1:0] mr_prenorm;
 
 logic [M-1:0] mr_norm;// removing hidden 1 and extra lsb
 logic [E-1:0] er_norm;
-logic         er_norm_carry;
+/* verilator lint_off UNUSEDSIGNAL */
+logic         er_norm_carry; // TODO overload identification ? 
+/* verilator lint_on UNUSEDSIGNAL */
 
 // a little ugly but useing a case to give more flexibility for optimization
 always_comb begin
@@ -154,7 +158,9 @@ lzc #(.W(LZC_V_W)) m_lzc (
 
 // variable shift : renormalization 
 // using case again for synth
-logic [M+1:0] mz_cp_norm; 
+/* verilator lint_off UNUSEDSIGNAL */
+logic [M+1:0] mz_cp_norm; //partially unused signal [8] and [0] unused 
+/* verilator lint_on UNUSEDSIGNAL */
 
 always_comb begin
 	case(zero_cnt) 
@@ -175,7 +181,9 @@ end
 
 // normalize exponent
 wire [E-1:0] ex_lzc_cp_diff;
-wire         ex_lxc_cp_diff_carry; 
+/* verilator lint_off UNUSEDSIGNAL */
+wire         ex_lxc_cp_diff_carry; // TODO: overflow detection
+/* verilator lint_on UNUSEDSIGNAL */
 wire         ez_min_inf;
 wire [E-1:0] ez_cp_norm;
 
@@ -188,7 +196,7 @@ assign ez_cp_norm = {E{ez_min_inf}} & ex_lzc_cp_diff;
  * select between close and far path
  * --------------------------------- */
 wire fp_sel; 
-assign fp_sel = |exy_diff[E-1:1]; // diff > 1 
+assign fp_sel = ~(~|exy_diff[E-1:1] & op_sub); //  exy_diff < 2 && cancellation 
 
 
 // TODO: handling corner cases : 
