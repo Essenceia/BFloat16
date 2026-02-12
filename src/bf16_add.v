@@ -36,6 +36,7 @@ module bf16_add #(
 //exponent
 wire [E-1:0] ex, exy_diff;
 wire [M-1:0] mx, my;
+wire         sx, sy;
 wire [E-1:0] eab_diff, eba_diff;
 wire         eab_diff_carry, eba_diff_carry;
 
@@ -45,7 +46,21 @@ assign {eba_diff_carry, eba_diff} = eb_i - ea_i;
 assign exy_diff = ~eab_diff_carry? eab_diff: eba_diff;
 assign ex       = ~eab_diff_carry? ea_i: eb_i; 
 assign {mx, my} = ~eab_diff_carry? {ma_i, mb_i}: {mb_i, ma_i}; 
+assign {sx, sy} = ~eab_diff_carry? {sa_i, sb_i}: {sb_i, sa_i};
 
+// identify corner cases : 
+// +/- zero 
+// +/- infinity 
+// implementation assumes no NaN will be feed as input values
+// add/mul cannot generate NaN if this condition is true
+wire x_nzero, y_nzero;
+wire x_inf, y_inf;
+
+assign x_nzero = |ex;
+assign y_nzero = |ey;
+assign x_inf = &ex;
+assign y_inf = &ey;
+ 
 /* --------
    far path  
    -------- */

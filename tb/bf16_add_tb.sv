@@ -5,9 +5,9 @@
 `endif
 
 `define sva_check_bf16(v, sign, exp,  man) \
-	sva_check_bf16_sign : assert(v.s == sign); \
-	sva_check_bf16_exponent : assert(v.e == exp); \
-	sva_check_bf16_mantissa : assert(v.m == man);	
+	sva_check_bf16_sign: assert(v.s == sign); \
+	sva_check_bf16_exponent: assert(v.e == exp); \
+	sva_check_bf16_mantissa: assert(v.m == man);	
  
 module bf16_add_tb;
 
@@ -46,7 +46,7 @@ initial begin
 	$dumpvars(0, bf16_add_tb);
 
 	$urandom(`RAND_SEED);
-
+	#10
 	test_zero();
 	
 	$finish; 
