@@ -17,7 +17,7 @@ Usage assumptions:
 - inputs are never subnormal or any flavor of NaN
 
 Limitations implied by design choices: 
-- no NaN support: since no addition or multipliation can produce a NaN if no input is NaN, there is no explicit NaN support
+- no NaN support: no addition or multiplication will produce a NaN, add notes on handling corner cases
 - no NaN signalling: corollary of above 
 - subnormals: all produced subnormals will be clamped to 0
 - no support for rounding modes appart from round to zero 
@@ -37,6 +37,23 @@ BFloat16 uses the following layout :
 ```
 [ sign (1 bit) | exponent (8 bits) | significant (7 bits) ]
 ```
+
+### NaN handeling
+
+Contrary to popular believe, addition and multiplication of floating point
+numbers can generate `NaN` according to the IEEE 754 specification. 
+
+This implementation makes the choice of not following this convention by redefining the
+behavior of the following cases that would normally generate a `qNaN`: 
+
+```math 
+
++ \infty - \infty = 0
+
+\pm \infty x \pm 0 = 0
+```
+
+
 
 
 
