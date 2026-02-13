@@ -50,38 +50,45 @@ assign {sx, sy} = ~eab_diff_carry? {sa_i, sb_i}: {sb_i, sa_i};
 
 // identify corner cases : 
 // +/- zero 
-// +/- infinity 
-// implementation assumes no NaN will be feed as input values
-// add/mul cannot generate NaN if this condition is true
+// +/- infinity
+// NaN 
 wire x_nzero, y_nzero;
+wire ex_max, ey_max;
+wire me_nzero, my_nzero; 
 wire x_inf, y_inf;
+wire x_nan, y_nan; 
 
-assign x_nzero = |ex;
-assign y_nzero = |ey;
-assign x_inf = &ex;
-assign y_inf = &ey;
- 
+assign {x_nzero, y_nzero }  = {|ex, |ey};
+// differentiating int/NaN
+assign {ex_max, ey_max}     = {&ex, &ey};
+assign {mx_nzero, my_nzero} = {|mx, |my};
+
+assign {x_inf, y_inf} = {ex_max & ~mx_nzero, ey_max & ~my_nzero}; 
+assign {x_nan, y_nan} = {ex_max &  mx_nzero, ey_max &  my_nzero};
+
 /* --------
    far path  
    -------- */
 // stupidly expensive shifter made a little cheaper by the fact we only need
 // p+1 bits since we are doing a round to zero, we can discard the sticky bit
 logic [M+1:0] my_shift;
+logic [M:0]   my_shift_lite;
 
 always_comb begin
 	case(exy_diff)
-		'd0: my_shift = {1'b1, my, 1'b0};
-		'd1: my_shift = {1'b1, 1'b0, my};
-		'd2: my_shift = {1'b1, 2'b0, my[M-1:1]};
-		'd3: my_shift = {1'b1, 3'b0, my[M-1:2]};
-		'd4: my_shift = {1'b1, 4'b0, my[M-1:3]};
-		'd5: my_shift = {1'b1, 5'b0, my[M-1:4]};
-		'd6: my_shift = {1'b1, 6'b0, my[M-1:5]};
-		'd7: my_shift = {1'b1, 7'b0, my[6]};
-		default: my_shift = {1'b1, 8'b0}; // 8+, sel is only on bottom 3 bits of exy_diff, else clamp to 0 
+		'd0: my_shift_lite = {my, 1'b0};
+		'd1: my_shift_lite = {1'b0, my};
+		'd2: my_shift_lite = {2'b0, my[M-1:1]};
+		'd3: my_shift_lite = {3'b0, my[M-1:2]};
+		'd4: my_shift_lite = {4'b0, my[M-1:3]};
+		'd5: my_shift_lite = {5'b0, my[M-1:4]};
+		'd6: my_shift_lite = {6'b0, my[M-1:5]};
+		'd7: my_shift_lite = {7'b0, my[6]};
+		default: my_shift_lite = {8'b0}; // 8+, sel is only on bottom 3 bits of exy_diff, else clamp to 0 
 	endcase
 end
-
+// if y is 0 correct hidden bit to prevent wrong exponent correction
+assign my_shift = {y_nzero, my_shift_lite};
 
 // operation can be either positive or negative: m_r = m_x +/- m_y
 // since we won't be doing the common rouding post normalization to save on
@@ -141,8 +148,8 @@ wire [M+1:0] my_cp_shifted; // p+1 width, including hidden 1
 wire [M+1:0] mx_cp; 
 
 assign exy_eq = ~eab_diff_carry & ~eba_diff_carry; // 1 = equal, 0 = not equal 
-assign my_cp_shifted = exy_eq ? {1'b1, my, 1'b0} : 
-								{1'b0, 1'b1, my}; // div 2, e_x - e_y = 1, e_x - e_y > 1 will be handed by far path  
+assign my_cp_shifted = exy_eq ? {y_nzero, my, 1'b0} : 
+								{1'b0, y_nzero, my}; // div 2, e_x - e_y = 1, e_x - e_y > 1 will be handed by far path  
 assign mx_cp = { 1'b1, mx, 1'b0};
 
 // absolute difference between significants 
@@ -213,15 +220,36 @@ assign ez_cp_norm = {E{ez_min_inf}} & ex_lzc_cp_diff;
 wire fp_sel; 
 assign fp_sel = ~(~|exy_diff[E-1:1] & op_sub); //  exy_diff < 2 && cancellation 
 
+// special case
+wire sc_sel; // special case select
+wire [E-1] er_sc;
+wire [M-1] mr_sc; 
+wire       r_zero, r_nan, r_inf;
+// 0 +/- |i|, where |i| > 0 returns x
+// 0 +/- 0, return 0
+// inf +/- |i|. where |i| =/= inf returns inf
+// inf +/- inf, returns nan
+// nan +/- i, returns nan 
+//
+// observation: when x is 0, then y is 0 since ex >= ey and we have no
+// subnormals
+
+assign r_zero = ~x_nzero;
+assign r_nan = (x_nan | y_nan) | (x_inf & y_inf & op_sub);
+assign r_inf = x_inf | y_inf; // nan takes precedance over inf 
+assign mr_sc = {M{r_nan}};
+
+assign er_sc = {E{~r_zero}};
+assign sc_sel = r_zero | r_nan | r_inf; 
 
 // TODO: handling corner cases : 
 //  - round subnormals to 0 
 //  - +/i inf
 
 // return
-assign s_o = 1'b0;// TODO
-assign e_o = fp_sel ? er_norm : ez_cp_norm;
-assign m_o = fp_sel ? mr_norm[M-1:0]: mz_cp_norm[M:1];
+assign s_o = sx;
+assign e_o = sc_sel ? er_sc ? fp_sel ? er_norm : ez_cp_norm;
+assign m_o = sc_sel ? mr_sc ? fp_sel ? mr_norm[M-1:0]: mz_cp_norm[M:1];
 
 `ifdef FORMAL
 
@@ -231,7 +259,9 @@ always_comb begin
 	sva_xcheck_o: assert( ~$isunknown({s_o, e_o, m_o});
 
 	// assertions 
-	sva_swap_geq_exp: assert(mx >= my);
+	sva_swap_geq_exp: assert(ex >= ey);
+
+	sva_sc_check_no_overlap: $onehot0({r_zero, r_nan});
 end
 
 `endif

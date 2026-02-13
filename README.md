@@ -65,3 +65,17 @@ the IEEE-754 spec for multiplications and additions.
 
 ![Multiplication](doc/qNaN_mul.png)
 
+#### Prepresentation
+
+All `NaN`s will be quite, there will be no support for a 
+signaling flag since no operation produce an `sNaN`. 
+`qNaN` will be constantly outputted as : 
+`exponent = 0xFF, significant = 0x01`, but any incoming 
+`NaN` encoded as `exponent = 0xFF` and `signficant =/= 0x00` will
+be recognised as such. 
+
+
+## References 
+
+- IEEE-754, IEEE Standard for Floating-Point Arithmetic
+- Handbook of Floating-Point Arithmetic - Jean-Michel Muller • Nicolas Brunie, Florent de Dinechin, Claude-Pierre Jeannerod, Mioara Joldes, Vincent Lefèvre, Guillaume Melquiond, Nathalie Revol, Serge Torres
