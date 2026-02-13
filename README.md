@@ -40,21 +40,28 @@ BFloat16 uses the following layout :
 
 ### NaN handeling
 
-Contrary to popular believe, addition and multiplication of floating point
-numbers can generate `NaN` according to the IEEE 754 specification. 
-
-This implementation makes the choice of not following this convention by redefining the
-behavior of the following cases that would normally generate a `qNaN`: 
-
+Initially the desire was to NOT add support for NaN, unfortunatly 
+given $\pm \infty$ is a limit there was no mathematically correct
+solution for the following operations : 
 ```math 
 
-+ \infty - \infty = 0
-
-\pm \infty x \pm 0 = 0
+\pm \infty \times 0 = ?
 ```
 
+As such, I needed to revise my stance on supporting `NaN`. 
 
+That said, this hardware will only produce `qNaN`, conformly with 
+the IEEE-754 spec for multiplications and additions. 
 
+#### Operations producting NaN
 
+##### Addition 
 
+![Addition](doc/qNaN_add.png)
+
+![Substraction](doc/qNaN_sub.png)
+
+##### Multiplication
+
+![Multiplication](doc/qNaN_mul.png)
 
