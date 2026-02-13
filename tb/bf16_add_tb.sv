@@ -1,5 +1,7 @@
 // BFloat16 Adder Testbench
 
+`timescale 10 ns / 1 ns 
+
 `ifndef RAND_SEED
 `define RAND_SEED 10
 `endif
@@ -16,7 +18,6 @@
 	v.s = sign; \
 	v.e = exp; \
 	v.m = man; 
- 
 module bf16_add_tb;
 
 typedef struct {
