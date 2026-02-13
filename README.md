@@ -14,11 +14,9 @@ Supported operations :
 
 Usage assumptions:
 - inputs are bf16 
-- inputs are never subnormal or any flavor of NaN
+- inputs are never subnormal
 
 Limitations implied by design choices: 
-- no NaN support: no addition or multiplication will produce a NaN, add notes on handling corner cases
-- no NaN signalling: corollary of above 
 - subnormals: all produced subnormals will be clamped to 0
 - no support for rounding modes appart from round to zero 
 
