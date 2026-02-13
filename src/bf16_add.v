@@ -34,9 +34,9 @@ module bf16_add #(
    compare and swap 
    ---------------- */
 //exponent
-wire [E-1:0] ex, exy_diff;
+wire [E-1:0] ex, ey, exy_diff;
 wire [M-1:0] mx, my;
-wire         sx, sy;
+wire         sx, sy_unused;
 wire [E-1:0] eab_diff, eba_diff;
 wire         eab_diff_carry, eba_diff_carry;
 
@@ -44,9 +44,9 @@ assign {eab_diff_carry, eab_diff} = ea_i - eb_i;
 assign {eba_diff_carry, eba_diff} = eb_i - ea_i;
 
 assign exy_diff = ~eab_diff_carry? eab_diff: eba_diff;
-assign ex       = ~eab_diff_carry? ea_i: eb_i; 
+assign {ex, ey} = ~eab_diff_carry? {ea_i, eb_i}: {eb_i, ea_i}; 
 assign {mx, my} = ~eab_diff_carry? {ma_i, mb_i}: {mb_i, ma_i}; 
-assign {sx, sy} = ~eab_diff_carry? {sa_i, sb_i}: {sb_i, sa_i};
+assign {sx, sy_unused} = ~eab_diff_carry? {sa_i, sb_i}: {sb_i, sa_i};
 
 // identify corner cases : 
 // +/- zero 
@@ -54,7 +54,7 @@ assign {sx, sy} = ~eab_diff_carry? {sa_i, sb_i}: {sb_i, sa_i};
 // NaN 
 wire x_nzero, y_nzero;
 wire ex_max, ey_max;
-wire me_nzero, my_nzero; 
+wire mx_nzero, my_nzero; 
 wire x_inf, y_inf;
 wire x_nan, y_nan; 
 
@@ -222,8 +222,8 @@ assign fp_sel = ~(~|exy_diff[E-1:1] & op_sub); //  exy_diff < 2 && cancellation
 
 // special case
 wire sc_sel; // special case select
-wire [E-1] er_sc;
-wire [M-1] mr_sc; 
+wire [E-1:0] er_sc;
+wire [M-1:0] mr_sc; 
 wire       r_zero, r_nan, r_inf;
 // 0 +/- |i|, where |i| > 0 returns x
 // 0 +/- 0, return 0
@@ -248,8 +248,8 @@ assign sc_sel = r_zero | r_nan | r_inf;
 
 // return
 assign s_o = sx;
-assign e_o = sc_sel ? er_sc ? fp_sel ? er_norm : ez_cp_norm;
-assign m_o = sc_sel ? mr_sc ? fp_sel ? mr_norm[M-1:0]: mz_cp_norm[M:1];
+assign e_o = sc_sel ? er_sc : fp_sel ? er_norm : ez_cp_norm;
+assign m_o = sc_sel ? mr_sc : fp_sel ? mr_norm[M-1:0]: mz_cp_norm[M:1];
 
 `ifdef FORMAL
 
