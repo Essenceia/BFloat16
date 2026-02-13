@@ -8,6 +8,11 @@
 	sva_check_bf16_sign_``sva_name: assert(v.s == sign); \
 	sva_check_bf16_exponent_``sva_name: assert(v.e == exp); \
 	sva_check_bf16_mantissa_``sva_name: assert(v.m == man);	
+
+`define set_bf16(v, sign, exp, man) \
+	v.s = sign; \
+	v.e = exp; \
+	v.m = man; 
  
 module bf16_add_tb;
 
@@ -17,27 +22,7 @@ typedef struct {
 	logic [6:0] m; // mantissa (significant)
 } bf16_t;
 
-/* verilator lint_off UNUSEDSIGNAL */
-/* verilator lint_off UNDRIVEN */
 bf16_t a, b, c;
-/* verilator lint_on UNDRIVEN */
-/* verilator lint_on UNUSEDSIGNAL */
-
-/*
-function set_bf16(logic sign, logic [7:0] exp, logic [6:0] man);
-	bf16_t tmp; 
-	tmp.s = sign; 
-	tmp.e = exp; 
-	tmp.m = man; 
-	return tmp;
-endfunction
-*/
-
-`define set_bf16(v, sign, exp, man) \
-	v.s = sign; \
-	v.e = exp; \
-	v.m = man; 
-
 
 task test_zero();
 	//  0 + 0
