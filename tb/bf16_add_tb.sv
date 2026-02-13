@@ -4,10 +4,13 @@
 `define RAND_SEED 10
 `endif
 
+`define _sva_error_msg(exp, got) \
+	$error("sva assert failed: \nexpected b%b\nreceived b%b\n", exp, got)
+
 `define sva_check_bf16(sva_name, v, sign, exp,  man) \
-	sva_check_bf16_sign_``sva_name: assert(v.s == sign); \
-	sva_check_bf16_exponent_``sva_name: assert(v.e == exp); \
-	sva_check_bf16_mantissa_``sva_name: assert(v.m == man);	
+	sva_check_bf16_sign_``sva_name: assert(v.s == sign) else `_sva_error_msg(sign, (v.s)); \
+	sva_check_bf16_exponent_``sva_name: assert(v.e == exp) else `_sva_error_msg(exp, (v.e)); \
+	sva_check_bf16_mantissa_``sva_name: assert(v.m == man) else `_sva_error_msg(man, (v.m));	
 
 `define set_bf16(v, sign, exp, man) \
 	v.s = sign; \
@@ -37,7 +40,7 @@ task test_zero();
 	`sva_check_bf16(zero_plus, c, 1'b0, 8'h00, 7'h00);
 	
 	// 0 + 1
-	`set_bf16(b, 1'b1, 8'h7f, 7'h00);
+	`set_bf16(b, 1'b0, 8'h7f, 7'h00);
 	#10 
 	`sva_check_bf16(_one_test0, c, 1'b0, 8'h7f, 7'h00);
 
