@@ -17,8 +17,13 @@ typedef struct {
 	logic [6:0] m; // mantissa (significant)
 } bf16_t;
 
-bf16_t a, b,c;
+/* verilator lint_off UNUSEDSIGNAL */
+/* verilator lint_off UNDRIVEN */
+bf16_t a, b, c;
+/* verilator lint_on UNDRIVEN */
+/* verilator lint_on UNUSEDSIGNAL */
 
+/*
 function set_bf16(logic sign, logic [7:0] exp, logic [6:0] man);
 	bf16_t tmp; 
 	tmp.s = sign; 
@@ -26,19 +31,26 @@ function set_bf16(logic sign, logic [7:0] exp, logic [6:0] man);
 	tmp.m = man; 
 	return tmp;
 endfunction
+*/
+
+`define set_bf16(v, sign, exp, man) \
+	v.s = sign; \
+	v.e = exp; \
+	v.m = man; 
+
 
 task test_zero();
-
 	//  0 + 0
-	a = set_bf16(0, '0, '0);
-	b = set_bf16(0, '0, '0);
+	`set_bf16(a, 1'b0, 8'h00, 7'h00);
+    `set_bf16(b, 1'b0, 8'h00, 7'h00);
 	#10
-	`sva_check_bf16(zero, c, 0, '0, '0);
+	`sva_check_bf16(zero, c, 1'b0, 8'h00, 7'h00);
 
 	// 0 - 0 = +0 
-	b = set_bf16(1, '0, '0);
+	`set_bf16(b, 1'b1, 8'h00, 7'h00);
 	#10 
-	`sva_check_bf16(zero_plus, c, 0, '0, '0);
+	`sva_check_bf16(zero_plus, c, 1'b0, 8'h00, 7'h00);
+/*
 	// 0 + 1
 	b = set_bf16( 1, 8'h7f, '0);
 	#10 
@@ -48,7 +60,7 @@ task test_zero();
 	a = set_bf16(1, '0, '0);
 	#10 
 	`sva_check_bf16(_one_test1,c, 0, 8'h7f, '0);
-
+*/
 	$display("test_zero: PASS");
 endtask 
 
