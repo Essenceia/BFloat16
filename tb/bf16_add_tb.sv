@@ -4,10 +4,10 @@
 `define RAND_SEED 10
 `endif
 
-`define sva_check_bf16(v, sign, exp,  man) \
-	sva_check_bf16_sign: assert(v.s == sign); \
-	sva_check_bf16_exponent: assert(v.e == exp); \
-	sva_check_bf16_mantissa: assert(v.m == man);	
+`define sva_check_bf16(sva_name, v, sign, exp,  man) \
+	sva_check_bf16_sign_``sva_name: assert(v.s == sign); \
+	sva_check_bf16_exponent_``sva_name: assert(v.e == exp); \
+	sva_check_bf16_mantissa_``sva_name: assert(v.m == man);	
  
 module bf16_add_tb;
 
@@ -28,15 +28,26 @@ function set_bf16(logic sign, logic [7:0] exp, logic [6:0] man);
 endfunction
 
 task test_zero();
-	a.s = 1'b0;
-	a.e = {8{1'b0}};
-	a.m = {7{1'b0}};
-	b.s = 1'b0;
-	b.e = {8{1'b0}};
-	b.m = {7{1'b0}};
 
+	//  0 + 0
+	a = set_bf16(0, '0, '0);
+	b = set_bf16(0, '0, '0);
 	#10
-	`sva_check_bf16(c, 0, '0, '0);
+	`sva_check_bf16(zero, c, 0, '0, '0);
+
+	// 0 - 0 = +0 
+	b = set_bf16(1, '0, '0);
+	#10 
+	`sva_check_bf16(zero_plus, c, 0, '0, '0);
+	// 0 + 1
+	b = set_bf16( 1, 8'h7f, '0);
+	#10 
+	`sva_check_bf16(_one_test0, c, 0, 8'h7f, '0);
+
+	// -0 + 1
+	a = set_bf16(1, '0, '0);
+	#10 
+	`sva_check_bf16(_one_test1,c, 0, 8'h7f, '0);
 
 	$display("test_zero: PASS");
 endtask 
