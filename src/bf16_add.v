@@ -74,7 +74,7 @@ assign {x_nan, y_nan} = {ex_max &  mx_nzero, ey_max &  my_nzero};
 logic [M+1:0] my_shift;
 logic [M:0]   my_shift_lite;
 
-always_comb begin
+always @(*) begin
 	case(exy_diff)
 		'd0: my_shift_lite = {my, 1'b0};
 		'd1: my_shift_lite = {1'b0, my};
@@ -119,7 +119,7 @@ logic         er_norm_carry; // TODO overload identification ?
 /* verilator lint_on UNUSEDSIGNAL */
 
 // a little ugly but useing a case to give more flexibility for optimization
-always_comb begin
+always @(*) begin
 	casez({mr_carry, mr[M+1]})
 		2'b00: begin // divide by 2
 			{er_norm_carry, er_norm} = ex - {{E-1{1'b0}},1'b1};
@@ -184,7 +184,7 @@ lzc #(.W(LZC_V_W)) m_lzc (
 logic [M+1:0] mz_cp_norm; //partially unused signal [8] and [0] unused 
 /* verilator lint_on UNUSEDSIGNAL */
 
-always_comb begin
+always @(*) begin
 	case(zero_cnt) 
 		'd0: mz_cp_norm = mxy_cp_abs_diff; // no cancellation 
 		'd1: mz_cp_norm = {mxy_cp_abs_diff[M:0], 1'b0}; 
@@ -204,7 +204,7 @@ end
 // normalize exponent
 wire [E-1:0] ex_lzc_cp_diff;
 /* verilator lint_off UNUSEDSIGNAL */
-wire         ex_lxc_cp_diff_carry; // TODO: overflow detection
+wire         ex_lzc_cp_diff_carry; // TODO: overflow detection
 /* verilator lint_on UNUSEDSIGNAL */
 wire         ez_min_inf;
 wire [E-1:0] ez_cp_norm;
@@ -253,7 +253,7 @@ assign m_o = sc_sel ? mr_sc : fp_sel ? mr_norm[M-1:0]: mz_cp_norm[M:1];
 
 `ifdef FORMAL
 
-always_comb begin
+always @(*) begin
 	// xcheck
 	sva_xcheck_i: assert( ~$isunknown({sa_i, ea_i, ma_i, sb_i, eb_i, mb_i});
 	sva_xcheck_o: assert( ~$isunknown({s_o, e_o, m_o});

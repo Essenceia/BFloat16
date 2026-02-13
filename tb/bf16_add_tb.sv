@@ -10,23 +10,20 @@
 	$error("sva assert failed: \nexpected b%b\nreceived b%b\n", exp, got)
 
 `define sva_check_bf16(sva_name, v, sign, exp,  man) \
-	sva_check_bf16_sign_``sva_name: assert(v.s == sign) else `_sva_error_msg(sign, (v.s)); \
-	sva_check_bf16_exponent_``sva_name: assert(v.e == exp) else `_sva_error_msg(exp, (v.e)); \
-	sva_check_bf16_mantissa_``sva_name: assert(v.m == man) else `_sva_error_msg(man, (v.m));	
+	sva_check_bf16_sign_``sva_name:     assert(v``_s == sign) else `_sva_error_msg(sign, (v``_s)); \
+	sva_check_bf16_exponent_``sva_name: assert(v``_e == exp) else `_sva_error_msg(exp,   (v``_e)); \
+	sva_check_bf16_mantissa_``sva_name: assert(v``_m == man) else `_sva_error_msg(man,   (v``_m));	
 
 `define set_bf16(v, sign, exp, man) \
-	v.s = sign; \
-	v.e = exp; \
-	v.m = man; 
+	v``_s = sign; \
+	v``_e = exp; \
+	v``_m = man; 
+
 module bf16_add_tb;
 
-typedef struct {
-	logic s; // sign
-	logic [7:0] e; // exponent
-	logic [6:0] m; // mantissa (significant)
-} bf16_t;
-
-bf16_t a, b, c;
+logic a_s, b_s, c_s;
+logic [7:0] a_e, b_e, c_e;
+logic [6:0] a_m, b_m, c_m;
 
 task test_zero();
 	//  0 + 0
@@ -65,17 +62,17 @@ initial begin
 end
 
 bf16_add m_dut(
-	.sa_i(a.s),
-	.ea_i(a.e),
-	.ma_i(a.m),
+	.sa_i(a_s),
+	.ea_i(a_e),
+	.ma_i(a_m),
 
-	.sb_i(b.s),
-	.eb_i(b.e),
-	.mb_i(b.m),
+	.sb_i(b_s),
+	.eb_i(b_e),
+	.mb_i(b_m),
 
-	.s_o(c.s),
-	.e_o(c.e),
-	.m_o(c.m)
+	.s_o(c_s),
+	.e_o(c_e),
+	.m_o(c_m)
 );
 
 endmodule

@@ -55,7 +55,7 @@ TOP := $(if $(top),$(top),bf16_add)
 
 # Lint variables.
 LINT_FLAGS :=
-ifeq ($(SIM),icarus)
+ifeq ($(SIM),I)
 LINT_FLAGS +=-Wall -g2012 $(if $(assert),-gassertions) -gstrict-expr-width
 LINT_FLAGS +=$(if $(debug),-DDEBUG) 
 else
@@ -66,7 +66,7 @@ LINT_FLAGS += -Ilib
 endif
 
 # Lint commands.
-ifeq ($(SIM),icarus)
+ifeq ($(SIM),I)
 define LINT
 	mkdir -p build
 	iverilog $(LINT_FLAGS) -s $2 -o $(BUILD_DIR)/$2 $1
@@ -83,7 +83,7 @@ endif
 # Lint #
 ########
 
-entry_deps := $(wildcard $(SRC_DIR)/*.v)
+entry_deps := $(wildcard $(SRC_DIR)/*.v) $(wilcard $(SRC_DIR)/*.sv)
 
 $(info Top set to: $(TOP))
 
@@ -193,4 +193,3 @@ clean:
 	rm -fr $(WAVE_DIR)/*
 	rm -fr build/*
 	rm -fr obj_dir/*
-	$(MAKE) -C $(FPGA_DIR) clean#
