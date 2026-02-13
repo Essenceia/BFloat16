@@ -99,10 +99,10 @@ wire [M+1:0] mr;
 wire [M+1:0] my_shift_neg;
 wire mr_carry;
 assign op_sub = sa_i ^ sb_i; 
-assign my_shift_neg  = {M+2{op_sub}} ^ my_shift;
+assign my_shift_neg  = {M+2{op_sub & y_nzero}} ^ my_shift;
 assign {mr_carry, mr} = {1'b1, mx, 1'b0} // 9
 					  + my_shift_neg
-                      + {{M+1{1'b0}}, op_sub}; // 9
+                      + {{M+1{1'b0}}, op_sub & y_nzero}; // 9
 
 // normalize: 2 bit shifter
 // if addition: division by 2 might be needed 
