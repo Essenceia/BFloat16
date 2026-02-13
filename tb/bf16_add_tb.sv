@@ -50,17 +50,17 @@ task test_zero();
 	`set_bf16(b, 1'b1, 8'h00, 7'h00);
 	#10 
 	`sva_check_bf16(zero_plus, c, 1'b0, 8'h00, 7'h00);
-/*
+	
 	// 0 + 1
-	b = set_bf16( 1, 8'h7f, '0);
+	`set_bf16(b, 1'b1, 8'h7f, 7'h00);
 	#10 
-	`sva_check_bf16(_one_test0, c, 0, 8'h7f, '0);
+	`sva_check_bf16(_one_test0, c, 1'b0, 8'h7f, 7'h00);
 
 	// -0 + 1
-	a = set_bf16(1, '0, '0);
+	`set_bf16(a,1'b1, 8'h00, 7'h00);
 	#10 
-	`sva_check_bf16(_one_test1,c, 0, 8'h7f, '0);
-*/
+	`sva_check_bf16(_one_test1,c, 1'b0, 8'h7f, 7'h00);
+
 	$display("test_zero: PASS");
 endtask 
 
