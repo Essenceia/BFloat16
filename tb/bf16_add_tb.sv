@@ -6,19 +6,19 @@
 `define RAND_SEED 10
 `endif
 
-`define _sva_error_msg(exp, got) \
-	$error("sva assert failed: \nexpected b%b\nreceived b%b\n", exp, got)
+`define _sva_error_msg(name, exp, got) \
+	$error("sva assert 'name' failed: \nexpected b%b\nreceived b%b\n", exp, got)
 
 `ifdef VERILATOR
 `define sva_check_bf16(sva_name, v, sign, exp,  man) \
-	sva_check_bf16_sign_``sva_name:     assert(v``_s == sign) else `_sva_error_msg(sign, (v``_s)); \
-	sva_check_bf16_exponent_``sva_name: assert(v``_e == exp) else `_sva_error_msg(exp,   (v``_e)); \
-	sva_check_bf16_mantissa_``sva_name: assert(v``_m == man) else `_sva_error_msg(man,   (v``_m));	
+	sva_check_bf16_sign_``sva_name    : assert(v``_s == sign) else `_sva_error_msg(sva_check_bf16_sign_``sva_name,sign, (v``_s)); \
+	sva_check_bf16_exponent_``sva_name: assert(v``_e == exp)  else `_sva_error_msg(sva_check_bf16_exponent_``sva_name, exp,  (v``_e)); \
+	sva_check_bf16_mantissa_``sva_name: assert(v``_m == man)  else `_sva_error_msg(sva_check_bf16_mantissa_``sva_name, man,  (v``_m));	
 `else
 `define sva_check_bf16(sva_name, v, sign, exp, man) \
-	if (v``_s !== sign) `_sva_error_msg(sign, (v``_s)); \
-	if (v``_e !== exp) `_sva_error_msg(exp, (v``_e)); \
-	if (v``_m !== man) `_sva_error_msg(man, (v``_m));
+	if (v``_s !== sign) `_sva_error_msg(sva_check_bf16_sign_``sva_name,    sign, (v``_s)); \
+	if (v``_e !== exp)  `_sva_error_msg(sva_check_bf16_exponent_``sva_name, exp, (v``_e)); \
+	if (v``_m !== man)  `_sva_error_msg(sva_check_bf16_mantissa_``sva_name, man, (v``_m));
 `endif
 
 `define set_bf16(v, sign, exp, man) \
