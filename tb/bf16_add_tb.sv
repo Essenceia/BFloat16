@@ -26,11 +26,19 @@
 	v``_e = exp; \
 	v``_m = man; 
 
+`define set_rand_bf16(v) \
+	v``_s = $urandom_range(1,0); \
+	v``_e = $urandom_range($rtoi($pow(2,E)-1), 0);\
+	v``_m = $urandom_range($rtoi($pow(2,M)-1), 0);
+
 module bf16_add_tb;
 
+localparam E = 8;// exponent
+localparam M = 7;// mantissa (signficant) 
+
 logic a_s, b_s, c_s;
-logic [7:0] a_e, b_e, c_e;
-logic [6:0] a_m, b_m, c_m;
+logic [E-1:0] a_e, b_e, c_e;
+logic [M-1:0] a_m, b_m, c_m;
 
 task test_zero();
 	//  0 + 0
@@ -64,17 +72,39 @@ task test_zero();
 	#10 
 	`sva_check_bf16(min_one_test1,c, 1'b1, 8'h7f, 7'h00);
 
-
 	$display("test_zero: PASS");
 endtask 
+
+// whatever the value sent next to a nan, the result if allways nan
+task test_nan();
+	logic nan_sign, rand_sign; 
+	logic [M-1:0] nan_mantissa, rand_mantissa; 
+	
+	for(int i = 0; i < 10; i++) begin
+		nan_sign = $urandom_range(1, 0);
+		nan_mantissa = $urandom_range($rtoi($pow(2,M)-1), 1); 
+		`set_bf16(a, nan_sign, {E{1'b1}}, nan_mantissa);
+		for(int j=0; j < 10; j++) begin
+			`set_rand_bf16(b)
+			#10
+			`sva_check_bf16(nan, c, nan_sign, {E{1'b1}}, {M{1'b1}});
+				
+		end
+	end
+
+endtask
 
 initial begin
 	$dumpfile("wave/bf16_add_tb.vcd");
 	$dumpvars(0, bf16_add_tb);
 
-	//$urandom(`RAND_SEED);
+	int unsigned seed = `RAND_SEED;
+	$urandom(seed);
+
 	#10
 	test_zero();
+	#10 
+	test_nan();
 	
 	$finish; 
 end
