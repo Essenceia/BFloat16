@@ -6,6 +6,11 @@
 `define RAND_SEED 10
 `endif
 
+`ifndef ITER
+`define ITER 10
+`endif
+
+
 `define _sva_error_msg(name, exp, got) \
 	$error("sva assert 'name' failed: \nexpected b%b\nreceived b%b\n", exp, got)
 
@@ -82,18 +87,18 @@ task test_nan();
 	logic nan_sign, rand_sign; 
 	logic [M-1:0] nan_mantissa, rand_mantissa; 
 	
-	for(int i = 0; i < 10; i++) begin
+	for(int i = 0; i < `ITER; i++) begin
 		nan_sign = $urandom_range(1, 0);
 		nan_mantissa = $urandom_range($rtoi($pow(2,M)-1), 1); 
 		`set_bf16(a, nan_sign, {E{1'b1}}, nan_mantissa);
-		for(int j=0; j < 10; j++) begin
+		for(int j=0; j < `ITER; j++) begin
 			`set_rand_bf16(b)
 			#10
 			`sva_check_bf16(nan, c, nan_sign, {E{1'b1}}, {M{1'b1}});
 				
 		end
 	end
-
+	$display("test_nan: PASS");
 endtask
 
 initial begin
