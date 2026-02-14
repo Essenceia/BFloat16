@@ -54,6 +54,17 @@ task test_zero();
 	#10 
 	`sva_check_bf16(one_test1,c, 1'b0, 8'h7f, 7'h00);
 
+	// -0 - 1
+	`set_bf16(b, 1'b1, 8'h7f, 7'h00);
+	#10 
+	`sva_check_bf16(min_one_test0, c, 1'b1, 8'h7f, 7'h00);
+	
+	// 0 - 1
+	`set_bf16(a, 1'b0, 8'h00, 7'h00);
+	#10 
+	`sva_check_bf16(min_one_test1,c, 1'b1, 8'h7f, 7'h00);
+
+
 	$display("test_zero: PASS");
 endtask 
 
