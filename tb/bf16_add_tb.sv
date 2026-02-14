@@ -40,6 +40,8 @@ logic a_s, b_s, c_s;
 logic [E-1:0] a_e, b_e, c_e;
 logic [M-1:0] a_m, b_m, c_m;
 
+int unsigned seed;
+
 task test_zero();
 	//  0 + 0
 	`set_bf16(a, 1'b0, 8'h00, 7'h00);
@@ -98,7 +100,7 @@ initial begin
 	$dumpfile("wave/bf16_add_tb.vcd");
 	$dumpvars(0, bf16_add_tb);
 
-	int unsigned seed = `RAND_SEED;
+	seed = `RAND_SEED;
 	$urandom(seed);
 
 	#10
