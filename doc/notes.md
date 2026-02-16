@@ -49,10 +49,25 @@ the latter:
    0x0000000000001174 <+91>:	leave
    0x0000000000001175 <+92>:	ret
 ```
+Based on this assembly, the expected behavior for the bfloat16_t would be 
+similar to a clamped down float32_t. 
 
 ## Finally found the bfloat16 spec ? 
 
 Have I finally found the bf16 spec? Nobody seems to aggree on what the 
 expected behavior of bf16 is expected to be ... nope ... just points to ieee 754 ... 
 
+
+## Probing the standard library soft `bfloat16_t` implementation 
+
+Added some testing in the program that lives under `cpu_test` used to 
+independantly probe the behavior of the `bfloat16_t`. 
+
+Confirmed behavior: 
+- has subnormal support
+- has NaN support
+- has inf support
+
+In order to use this as a golden model for the hardware, I will 
+need to manually clamp subnormals to 0. 
 
