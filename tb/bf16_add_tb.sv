@@ -31,10 +31,14 @@
 	v``_e = exp; \
 	v``_m = man; 
 
+// generate a valid (not nan) integer number excluding inf
 `define set_rand_bf16(v) \
+	/* verilator lint_off WIDTHTRUNC */ \
 	v``_s = $urandom_range(1,0); \
-	v``_e = $urandom_range($rtoi($pow(2,E)-1), 0);\
-	v``_m = $urandom_range($rtoi($pow(2,M)-1), 0);
+	v``_e = $urandom_range($rtoi($pow(2,E)-2), 0);\
+	v``_m = $urandom_range($rtoi($pow(2,M)-1), 0);\
+	/* verilator lint_on WIDTHTRUNC */
+
 
 module bf16_add_tb;
 
@@ -84,12 +88,14 @@ endtask
 
 // whatever the value sent next to a nan, the result if allways nan
 task test_nan();
-	logic nan_sign, rand_sign; 
-	logic [M-1:0] nan_mantissa, rand_mantissa; 
+	logic nan_sign; 
+	logic [M-1:0] nan_mantissa;
 	
 	for(int i = 0; i < `ITER; i++) begin
+		/* verilator lint_off WIDTHTRUNC */
 		nan_sign = $urandom_range(1, 0);
 		nan_mantissa = $urandom_range($rtoi($pow(2,M)-1), 1); 
+		/* verilator lint_on WIDTHTRUNC */
 		`set_bf16(a, nan_sign, {E{1'b1}}, nan_mantissa);
 		for(int j=0; j < `ITER; j++) begin
 			`set_rand_bf16(b)
@@ -99,6 +105,40 @@ task test_nan();
 		end
 	end
 	$display("test_nan: PASS");
+endtask
+
+// test inf
+task test_inf();
+	logic inf_sign; 
+	
+	// + inf - inf  = nan
+	`set_bf16(a, 1'b0, 8'hFF, 7'h00);
+    `set_bf16(b, 1'b1, 8'hFF, 7'h00);
+	#10
+	`sva_check_bf16(inf_nan, c, 1'bX, 8'hFF, 7'hFF);
+
+	// + inf + 0 = +inf
+	`set_bf16(a, 1'b0, 8'hFF, 7'h00);
+    `set_bf16(b, 1'b0, 8'h00, 7'h00);
+	#10
+	`sva_check_bf16(inf_plus_zero, c, 1'b0, 8'hFF, 7'h00);
+
+
+	// +/- inf + rand = inf
+	for(int i = 0; i < `ITER; i++) begin
+		/* verilator lint_off WIDTHTRUNC */
+		inf_sign = $urandom_range(1, 0);
+		/* verilator lint_on WIDTHTRUNC */
+		`set_bf16(a, inf_sign, {E{1'b1}}, 7'h00);
+		for(int j=0; j < `ITER; j++) begin
+			`set_rand_bf16(b)
+			#10
+			`sva_check_bf16(inf_rand, c, inf_sign, {E{1'b1}}, {M{1'b0}});
+				
+		end
+	end
+	$display("test_inf: PASS");
+	
 endtask
 
 initial begin
@@ -112,6 +152,8 @@ initial begin
 	test_zero();
 	#10 
 	test_nan();
+	#10
+	test_inf();
 	
 	$finish; 
 end
