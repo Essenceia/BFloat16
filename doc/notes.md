@@ -69,5 +69,6 @@ Confirmed behavior:
 - has inf support
 
 In order to use this as a golden model for the hardware, I will 
-need to manually clamp subnormals to 0. 
+need to manually clamp subnormals to 0. To this end, I can probably use 
+the `cmath` standard `isnormal` wrapper.
 
