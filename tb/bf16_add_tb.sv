@@ -26,6 +26,7 @@
 	if (v``_m !== man)  `_sva_error_msg(sva_check_bf16_mantissa_``sva_name, man, (v``_m));
 `endif
 
+// icarus verilog doesn't support structures, macro workaround
 `define set_bf16(v, sign, exp, man) \
 	v``_s = sign; \
 	v``_e = exp; \
@@ -138,7 +139,6 @@ task test_inf();
 		end
 	end
 	$display("test_inf: PASS");
-	
 endtask
 
 initial begin
