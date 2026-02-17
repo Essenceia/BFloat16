@@ -52,6 +52,7 @@ module bf16_add_tb;
 
 localparam E = 8;// exponent
 localparam M = 7;// mantissa (signficant) 
+localparam shortint SMALLEST_INT = 16'b0000000010000000;
 
 logic a_s, b_s, c_s;
 logic [E-1:0] a_e, b_e, c_e;
@@ -148,6 +149,8 @@ task test_inf();
 	$display("test_inf: PASS");
 endtask
 
+// DPI is verilator only 
+`ifdef VERILATOR
 task test_dpi();
 	shortint x, y, r; 
 	// 1 + 1 
@@ -160,10 +163,33 @@ task test_dpi();
 	// call dpi 
 	r = bf16_add(x,y); 
 	bf16_pretty_print_triple(x,y,r);
-
-	$display("dpi result got %b", r);
-
 endtask 
+
+
+task test_batch(shortint start_x, shortint start_y);
+	shortint x,y,r; 
+	logic [15:0] a, b, c; 
+
+	if (start_x < SMALLEST_INT) x = SMALLEST_INT; 
+	else x = start_x;
+	if (start_y < SMALLEST_INT) y = SMALLEST_INT; 
+	else y = start_y;
+
+	for(shortint i = x; i < 16'hffff; i++) begin
+		r = bf16_add(i, y);
+		a = i; 
+		b = y; 
+		c = r; 
+		`set_bf16(a, a[15], a[14:7], a[6:0]);
+		`set_bf16(b, b[15], b[14:7], b[6:0]);
+		`set_bf16(c, c[15], c[14:7], c[6:0]);
+		#10
+		bf16_pretty_print_triple(i,y,r);
+		`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
+	end
+endtask 
+`endif
+
 
 initial begin
 	$dumpfile("wave/bf16_add_tb.vcd");
@@ -178,10 +204,14 @@ initial begin
 	test_nan();
 	#10
 	test_inf();
-	
-	#1 
+
+`ifdef VERILATOR	
+	#10
 	test_dpi();
-	
+	#10
+	test_batch(0,0);
+`endif
+
 	$finish; 
 end
 
