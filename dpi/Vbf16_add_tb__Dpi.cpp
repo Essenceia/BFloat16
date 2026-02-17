@@ -4,12 +4,13 @@
 #include <stdfloat> 
 #include <cstring> 
 #include <cmath> 
+#include <iostream> 
+#include <bitset> 
 
 using namespace std; 
 
-short add(short x, short y){
+short bf16_add(short x, short y){
 	static_assert(sizeof(x) == sizeof(bfloat16_t));
-	static_assert(sizeof(bfloat16_t) == sizeof(uint16_t));
 
 	bfloat16_t a, b, c; 
 	short r; 
@@ -28,4 +29,15 @@ short add(short x, short y){
 	memcpy(&r, &c, sizeof(bfloat16_t));
 	return r;
 }
- 
+
+void bf16_pretty_print(short x){
+	bfloat16_t f; 
+	memcpy(&f, &x, sizeof(bfloat16_t));
+	cout << "16'h" <<std::hex << x << " - 16'b"<<  bitset<16>{x} << " (" << scientific << f << ")" << endl; 
+}
+// reduce the call overhead by having a triple print
+void bf16_pretty_print_triple(short x, short y, short z){
+	bf16_pretty_print(x);
+	bf16_pretty_print(y);
+	bf16_pretty_print(z);
+}

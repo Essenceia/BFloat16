@@ -12,7 +12,9 @@
 
 `ifdef VERILATOR
 // DPI interface
-import "DPI-C" function shortint add(input shortint x, input shortint y); 
+import "DPI-C" function shortint bf16_add(input shortint x, input shortint y); 
+import "DPI-C" function void bf16_pretty_print(input shortint x); 
+import "DPI-C" function void bf16_pretty_print_triple(input shortint x, input shortint y, input shortint z); 
 `endif
 
 `define _sva_error_msg(name, exp, got) \
@@ -156,7 +158,8 @@ task test_dpi();
 	y = {b_s, b_e, b_m};
 
 	// call dpi 
-	r = add(x,y); 
+	r = bf16_add(x,y); 
+	bf16_pretty_print_triple(x,y,r);
 
 	$display("dpi result got %b", r);
 
