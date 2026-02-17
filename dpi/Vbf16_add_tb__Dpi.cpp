@@ -4,6 +4,8 @@
 #include <cstring> 
 #include <cmath> 
 
+using namespace std; 
+
 short add(short x, short y){
 	static_assert(sizeof(x) == sizeof(bfloat16_t));
 	static_assert(sizeof(bfloat16_t) == sizeof(uint16_t));
