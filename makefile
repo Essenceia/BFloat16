@@ -107,8 +107,6 @@ BUILD_FLAGS += $(if $(wave), --trace --trace-underscore)
 BUILD_FLAGS += $(if $(cov), --coverage --coverage-underscore) 
 BUILD_FLAGS += --timing
 BUILD_FLAGS += --x-initial-edge
-MAKE_THREADS = 4 
-BUILD_FLAGS += -j $(MAKE_THREADS)
 endif
 
 
@@ -127,8 +125,16 @@ else
 define BUILD
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(WAIVER_FILE)
+	verilator --binary $(LINT_FLAGS) -j 0 $(BUILD_FLAGS) -o $2 $1  
+endef
+
+define BUILD_DPI
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(WAIVER_FILE)
 	verilator --cc $(LINT_FLAGS) -j 0 $(BUILD_FLAGS) -o $2 $1  
 endef
+
+
 endif
 
 #######
@@ -158,8 +164,8 @@ endif
 #############
 
 # The list of testbenches.
-tbs := lzc bf16_add
-
+tbs := lzc
+tbs_dpi := bf16_add
 # Dependencies for each testbench
 lzc_deps += $(TB_DIR)/lzc_tb.sv $(SRC_DIR)/lzc.v
 bf16_add_deps += $(TB_DIR)/bf16_add_tb.sv $(SRC_DIR)/lzc.v $(SRC_DIR)/bf16_add.v
@@ -169,6 +175,15 @@ define build_recipe
 $1_tb: $$($(1)_deps)
 	$$(call BUILD,$$^,$$@)
 
+endef
+
+define build_dpi_recipe
+$1_dpi_tb: $$($(1)_deps)
+	$$(call BUILD_DPI,$$^,$$@)
+	make -C dpi all
+	cp dpi/*.cpp $(BUILD_DIR)/.	
+	cp dpi/*.o $(BUILD_DIR)/.
+	make -C $(BUILD_DIR) -f V$(1)_tb.mk
 endef
 
 # Standard run recipe to run a given testbench
@@ -184,6 +199,7 @@ $(eval $(foreach x,$(tbs),$(call run_recipe,$x)))
 
 # Generate build recipes for each testbench.
 $(eval $(foreach x,$(tbs),$(call build_recipe,$x)))
+$(eval $(foreach x,$(tbs_dpi),$(call build_dpi_recipe,$x)))
 
 
 # Cleanup
