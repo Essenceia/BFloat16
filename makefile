@@ -131,7 +131,7 @@ endef
 define BUILD_DPI
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(WAIVER_FILE)
-	verilator --cc $(LINT_FLAGS) -j 0 $(BUILD_FLAGS) -o $2 $1  
+	verilator --binary -CFLAGS -std=c++23 $(LINT_FLAGS) -j 0 $(BUILD_FLAGS) -o $2 $1  
 endef
 
 
@@ -168,7 +168,7 @@ tbs := lzc
 tbs_dpi := bf16_add
 # Dependencies for each testbench
 lzc_deps += $(TB_DIR)/lzc_tb.sv $(SRC_DIR)/lzc.v
-bf16_add_deps += $(TB_DIR)/bf16_add_tb.sv $(SRC_DIR)/lzc.v $(SRC_DIR)/bf16_add.v
+bf16_add_deps += $(TB_DIR)/bf16_add_tb.sv $(SRC_DIR)/lzc.v $(SRC_DIR)/bf16_add.v dpi/Vbf16_add_tb__Dpi.cpp
 
 # Standard run recipe to build a given testbench
 define build_recipe
@@ -180,10 +180,6 @@ endef
 define build_dpi_recipe
 $1_dpi_tb: $$($(1)_deps)
 	$$(call BUILD_DPI,$$^,$$@)
-	make -C dpi all
-	cp dpi/*.cpp $(BUILD_DIR)/.	
-	cp dpi/*.o $(BUILD_DIR)/.
-	make -C $(BUILD_DIR) -f V$(1)_tb.mk
 endef
 
 # Standard run recipe to run a given testbench
@@ -195,6 +191,7 @@ endef
 
 # Generate run recipes for each testbench.
 $(eval $(foreach x,$(tbs),$(call run_recipe,$x)))
+$(eval $(foreach x,$(tbs_dpi),$(call run_recipe,$x)))
 
 
 # Generate build recipes for each testbench.

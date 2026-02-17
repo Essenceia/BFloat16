@@ -146,6 +146,22 @@ task test_inf();
 	$display("test_inf: PASS");
 endtask
 
+task test_dpi();
+	shortint x, y, r; 
+	// 1 + 1 
+	`set_bf16(a, 1'b0, 8'h7F, 7'h00);
+	`set_bf16(b, 1'b0, 8'h7F, 7'h00);
+
+	x = {a_s, a_e, a_m};
+	y = {b_s, b_e, b_m};
+
+	// call dpi 
+	r = add(x,y); 
+
+	$display("dpi result got %b", r);
+
+endtask 
+
 initial begin
 	$dumpfile("wave/bf16_add_tb.vcd");
 	$dumpvars(0, bf16_add_tb);
@@ -159,6 +175,9 @@ initial begin
 	test_nan();
 	#10
 	test_inf();
+	
+	#1 
+	test_dpi();
 	
 	$finish; 
 end
