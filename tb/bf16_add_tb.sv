@@ -10,6 +10,10 @@
 `define ITER 10
 `endif
 
+`ifdef VERILATOR
+// DPI interface
+import "DPI-C" function shortint add(input shortint x, input shortint y); 
+`endif
 
 `define _sva_error_msg(name, exp, got) \
 	$error("sva assert 'name' failed: \nexpected b%b\nreceived b%b\n", exp, got)
@@ -39,6 +43,7 @@
 	v``_e = $urandom_range($rtoi($pow(2,E)-2), 0);\
 	v``_m = $urandom_range($rtoi($pow(2,M)-1), 0);\
 	/* verilator lint_on WIDTHTRUNC */
+
 
 
 module bf16_add_tb;
