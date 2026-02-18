@@ -7,7 +7,14 @@
 #include <iostream> 
 #include <bitset> 
 
+#include <cfenv>
+
 using namespace std; 
+
+// set rounding mode to RZ
+void init_bf16(){
+		fesetround(FE_TOWARDZERO);
+}
 
 short bf16_add(short x, short y){
 	static_assert(sizeof(x) == sizeof(bfloat16_t));

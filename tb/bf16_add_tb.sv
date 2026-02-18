@@ -12,6 +12,7 @@
 
 `ifdef VERILATOR
 // DPI interface
+import "DPI-C" function void init_bf16(); 
 import "DPI-C" function shortint bf16_add(input shortint x, input shortint y); 
 import "DPI-C" function void bf16_pretty_print(input shortint x); 
 import "DPI-C" function void bf16_pretty_print_triple(input shortint x, input shortint y, input shortint z); 
@@ -205,7 +206,8 @@ initial begin
 	#10
 	test_inf();
 
-`ifdef VERILATOR	
+`ifdef VERILATOR
+	init_bf16();	
 	#10
 	test_dpi();
 	#10
