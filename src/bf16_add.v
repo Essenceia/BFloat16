@@ -72,23 +72,22 @@ assign {x_nan, y_nan} = {ex_max &  mx_nzero, ey_max &  my_nzero};
 // stupidly expensive shifter made a little cheaper by the fact we only need
 // p+1 bits since we are doing a round to zero, we can discard the sticky bit
 logic [M+1:0] my_shift;
-logic [M:0]   my_shift_lite;
 
+// if y is 0 correct hidden bit to prevent wrong exponent correction
 always @(*) begin
 	case(exy_diff)
-		'd0: my_shift_lite = {my, 1'b0};
-		'd1: my_shift_lite = {1'b0, my};
-		'd2: my_shift_lite = {2'b0, my[M-1:1]};
-		'd3: my_shift_lite = {3'b0, my[M-1:2]};
-		'd4: my_shift_lite = {4'b0, my[M-1:3]};
-		'd5: my_shift_lite = {5'b0, my[M-1:4]};
-		'd6: my_shift_lite = {6'b0, my[M-1:5]};
-		'd7: my_shift_lite = {7'b0, my[6]};
-		default: my_shift_lite = {8'b0}; // 8+, sel is only on bottom 3 bits of exy_diff, else clamp to 0 
+		'd0: my_shift = {y_nzero, my, 1'b0};
+		'd1: my_shift = {1'b0, y_nzero, my};
+		'd2: my_shift = {2'b0, y_nzero, my[M-1:1]};
+		'd3: my_shift = {3'b0, y_nzero, my[M-1:2]};
+		'd4: my_shift = {4'b0, y_nzero, my[M-1:3]};
+		'd5: my_shift = {5'b0, y_nzero, my[M-1:4]};
+		'd6: my_shift = {6'b0, y_nzero, my[M-1:5]};
+		'd7: my_shift = {7'b0, y_nzero, my[6]};
+		'd8: my_shift = {8'b0, y_nzero};
+		default: my_shift = {9'b0}; // 8+, sel is only on bottom 3 bits of exy_diff, else clamp to 0 
 	endcase
 end
-// if y is 0 correct hidden bit to prevent wrong exponent correction
-assign my_shift = {y_nzero, my_shift_lite};
 
 // operation can be either positive or negative: m_r = m_x +/- m_y
 // since we won't be doing the common rouding post normalization to save on
