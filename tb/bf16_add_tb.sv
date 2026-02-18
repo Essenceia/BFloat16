@@ -169,7 +169,7 @@ endtask
 
 task test_batch(shortint start_x, shortint start_y);
 	shortint x,y,r; 
-	logic [15:0] a, b, c; 
+	logic [15:0] a, b, c;
 
 	if (start_x < SMALLEST_INT) x = SMALLEST_INT; 
 	else x = start_x;
@@ -185,6 +185,7 @@ task test_batch(shortint start_x, shortint start_y);
 		`set_bf16(b, b[15], b[14:7], b[6:0]);
 		`set_bf16(c, c[15], c[14:7], c[6:0]);
 		#10
+		$display("%d:", i-x);
 		bf16_pretty_print_triple(i,y,r);
 		`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
 	end
