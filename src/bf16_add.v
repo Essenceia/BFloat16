@@ -202,16 +202,14 @@ end
 
 // normalize exponent
 wire [E-1:0] ex_lzc_cp_diff;
-/* verilator lint_off UNUSEDSIGNAL */
 wire         ex_lzc_cp_diff_carry; // TODO: overflow detection
-/* verilator lint_on UNUSEDSIGNAL */
 wire         ez_min_inf;
 wire [E-1:0] ez_cp_norm;
 
 assign {ex_lzc_cp_diff_carry, ex_lzc_cp_diff} = ex - {{E-LZC_W{1'b0}}, zero_cnt}; 
 assign ez_min_inf = ex_lzc_cp_diff_carry;// detect undexflow, going to - e_min
 
-assign ez_cp_norm = {E{ez_min_inf}} & ex_lzc_cp_diff; 
+assign ez_cp_norm = {E{ez_min_inf}} | ex_lzc_cp_diff; 
 
 /* ---------------------------------
  * select between close and far path

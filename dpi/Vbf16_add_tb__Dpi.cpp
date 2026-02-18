@@ -11,6 +11,7 @@
 #include <iomanip>
 
 #define HW_NAN 0x7FFF
+#define IS_SUBNORMAL(x) (!(isnormal(x) | isnan(x) | isinf(x) | (x == 0e0bf16)))
 
 using namespace std; 
 
@@ -25,19 +26,26 @@ void init_bf16(){
 		fesetround(FE_TOWARDZERO);
 }
 
-bfloat16_t subnormal_to_zero(bfloat16_t x){
-	if(!(isnormal(x) | isnan(x) | isinf(x))){
-		bool pos = (x>0);
-		cout << "rounding subnormal to "<< pos?"+":"-" <<"0.0 from " << scientific << x << " [normal:"<<
+bfloat16_t _subnormal_to_zero(bfloat16_t x){
+	if IS_SUBNORMAL(x) {
+		bool pos = !signbit(x);
+		cout << "rounding subnormal to "<< (pos?"+":"-") <<"0.0 from " << scientific << x << " [normal:"<<
 		isnormal(x) << ", nan:"<< isnan(x) << ", inf:"<< isinf(x) << "]" << endl;
 		if (pos) x = 0e0bf16;
 		else x = -0e0bf16; // because -0 is a thing I want to handle
 	}
 	return x;
 };
+short bf16_subnormal_to_zero(short x){
+	bfloat16_t f; 
+	memcpy(&f, &x, sizeof(bfloat16_t));
+	f = _subnormal_to_zero(f);
+	memcpy(&x, &f, sizeof(short)); 
+	return x; 
+}
 
 bfloat16_t expected_hw_result(bfloat16_t x){
-	x = subnormal_to_zero(x);
+	x = _subnormal_to_zero(x);
 	if (isnan(x)){
 		uint16_t nan = HW_NAN; 
 		memcpy(&x, &nan, sizeof(bfloat16_t));
@@ -54,9 +62,9 @@ short bf16_add(short x, short y){
 	memcpy(&a, &x, sizeof(bfloat16_t));
 	memcpy(&b, &y, sizeof(bfloat16_t));
 
-	// hardware implementation doesn't support subnormals as inputs
-	a = subnormal_to_zero(a);	
-	b = subnormal_to_zero(b);	
+	// input should not be subnormal
+	assert(IS_SUBNORMAL(a) == false && "Unexpected subnormal input on a");
+	assert(IS_SUBNORMAL(b) == false && "Unexpected subnormal input on b");
 
 	c = a + b; 
 	

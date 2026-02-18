@@ -13,7 +13,8 @@
 `ifdef VERILATOR
 // DPI interface
 import "DPI-C" function void init_bf16(); 
-import "DPI-C" function shortint bf16_add(input shortint x, input shortint y); 
+import "DPI-C" function shortint bf16_add(input shortint x, input shortint y);
+import "DPI-C" function shortint bf16_subnormal_to_zero(input shortint x); 
 import "DPI-C" function void bf16_pretty_print(input shortint x); 
 import "DPI-C" function void bf16_pretty_print_triple(input shortint x, input shortint y, input shortint z); 
 `endif
@@ -169,25 +170,31 @@ endtask
 
 task test_batch(shortint start_x, shortint start_y);
 	shortint x,y,r; 
+	longint cnt; 
 	logic [15:0] a, b, c;
 
-	if (start_x < SMALLEST_INT) x = SMALLEST_INT; 
-	else x = start_x;
-	if (start_y < SMALLEST_INT) y = SMALLEST_INT; 
-	else y = start_y;
+	if (start_x < SMALLEST_INT) start_x = SMALLEST_INT; 
+	if (start_y < SMALLEST_INT) start_y = SMALLEST_INT; 
+	y = start_y;
 
-	for(shortint i = x; i < 16'hffff; i++) begin
-		r = bf16_add(i, y);
-		a = i; 
+	cnt = 0;
+	for(shortint i = start_x; i < 16'hffff; i++) begin
+		// sanitize inputs
+		x = bf16_subnormal_to_zero(i); 
+		y = bf16_subnormal_to_zero(y);
+	
+		r = bf16_add(x, y);
+		a = x; 
 		b = y; 
 		c = r; 
 		`set_bf16(a, a[15], a[14:7], a[6:0]);
 		`set_bf16(b, b[15], b[14:7], b[6:0]);
 		`set_bf16(c, c[15], c[14:7], c[6:0]);
 		#10
-		$display("%d:", i-x);
+		$display("%d:", cnt);
 		bf16_pretty_print_triple(i,y,r);
 		`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
+		cnt = cnt + 1;
 	end
 endtask 
 `endif
