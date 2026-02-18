@@ -52,8 +52,15 @@ void test_inf(){
 	cout << "Testing inf NaN adder corner case" << endl;
 
 	if(isnan(c)) cout << "PASS: inf - inf = nan - expected behavior" << endl; 
-	else cout << "ERROR: unexpected behavior" << endl; 
+	else cout << "ERROR: unexpected behavior" << endl;
 
+	pretty_print_triplet(a,b,c);	
+
+	b = 1.175494e-38bf16;
+	c = a + b; 
+	cout << "Testing inf + N corner case" << endl;
+	if (isinf(c))cout << "PASS: inf + N = inf" << endl;
+	else cout << "ERROR: unexpected behavior" << endl;
 	pretty_print_triplet(a,b,c);	
 }
 

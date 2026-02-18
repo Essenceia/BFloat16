@@ -10,6 +10,8 @@
 #include <cfenv>
 #include <iomanip>
 
+#define HW_NAN 0x7FFF
+
 using namespace std; 
 
 typedef struct {
@@ -23,6 +25,25 @@ void init_bf16(){
 		fesetround(FE_TOWARDZERO);
 }
 
+bfloat16_t subnormal_to_zero(bfloat16_t x){
+	if(!(isnormal(x) | isnan(x) | isinf(x))){
+		cout << "rounding subnormal to 0" << scientific << x << " [normal:"<<
+		isnormal(x) << ", nan:"<< isnan(x) << ", inf:"<< isinf(x) << "]" << endl;
+		x = 0e0bf16;
+	}
+	return x;
+};
+
+bfloat16_t expected_hw_result(bfloat16_t x){
+	x = subnormal_to_zero(x);
+	if (isnan(x)){
+		uint16_t nan = HW_NAN; 
+		memcpy(&x, &nan, sizeof(bfloat16_t));
+	}
+	return x;
+};
+
+
 short bf16_add(short x, short y){
 	static_assert(sizeof(x) == sizeof(bfloat16_t));
 
@@ -32,13 +53,13 @@ short bf16_add(short x, short y){
 	memcpy(&b, &y, sizeof(bfloat16_t));
 
 	// hardware implementation doesn't support subnormals as inputs
-	if(!isnormal(a)) a = 0e0bf16;
-	if(!isnormal(b)) b = 0e0bf16;
+	a = subnormal_to_zero(a);	
+	b = subnormal_to_zero(b);	
 
 	c = a + b; 
 	
-	// hardware implementation rounds subnormals to 0
-	if(!isnormal(c)) c = 0e0bf16;
+	// hardware implementation rounds subnormals to 0 and set expected NaN
+	c = expected_hw_result(c);	
 
 	memcpy(&r, &c, sizeof(bfloat16_t));
 	return r;
