@@ -27,9 +27,11 @@ void init_bf16(){
 
 bfloat16_t subnormal_to_zero(bfloat16_t x){
 	if(!(isnormal(x) | isnan(x) | isinf(x))){
-		cout << "rounding subnormal to 0" << scientific << x << " [normal:"<<
+		bool pos = (x>0);
+		cout << "rounding subnormal to "<< pos?"+":"-" <<"0.0 from " << scientific << x << " [normal:"<<
 		isnormal(x) << ", nan:"<< isnan(x) << ", inf:"<< isinf(x) << "]" << endl;
-		x = 0e0bf16;
+		if (pos) x = 0e0bf16;
+		else x = -0e0bf16; // because -0 is a thing I want to handle
 	}
 	return x;
 };
