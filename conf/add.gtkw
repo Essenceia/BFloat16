@@ -1,0 +1,89 @@
+[*]
+[*] GTKWave Analyzer v3.3.115 (w)1999-2023 BSI
+[*] Wed Feb 18 20:58:12 2026
+[*]
+[dumpfile] "/home/pitchu/rtl/bf16/wave/bf16_add_tb.vcd"
+[dumpfile_mtime] "Wed Feb 18 20:53:11 2026"
+[dumpfile_size] 12364401
+[savefile] "/home/pitchu/rtl/bf16/wave/add.gtkw"
+[timestart] 3285395
+[size] 1910 688
+[pos] -1 -1
+*0.000000 3285398 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.bf16_add_tb.
+[treeopen] TOP.bf16_add_tb.m_dut.
+[sst_width] 290
+[signals_width] 259
+[sst_expanded] 1
+[sst_vpaned_height] 229
+@28
+TOP.bf16_add_tb.m_dut.sa_i
+@22
+TOP.bf16_add_tb.m_dut.ea_i[7:0]
+TOP.bf16_add_tb.m_dut.ma_i[6:0]
+@28
+TOP.bf16_add_tb.m_dut.sb_i
+@23
+TOP.bf16_add_tb.m_dut.eb_i[7:0]
+@22
+TOP.bf16_add_tb.m_dut.mb_i[6:0]
+@200
+-swap
+@28
+TOP.bf16_add_tb.m_dut.ex[7:0]
+TOP.bf16_add_tb.m_dut.ey[7:0]
+@22
+TOP.bf16_add_tb.m_dut.mx[6:0]
+TOP.bf16_add_tb.m_dut.my[6:0]
+@200
+-fp - shift
+@22
+TOP.bf16_add_tb.m_dut.my_shift[8:0]
+@200
+-sel
+@28
+TOP.bf16_add_tb.m_dut.fp_sel
+TOP.bf16_add_tb.m_dut.sc_sel
+@200
+-cp
+-cp - shift
+@22
+TOP.bf16_add_tb.m_dut.my_cp_shifted[8:0]
+@c00022
+TOP.bf16_add_tb.m_dut.mx_cp[8:0]
+@28
+(0)TOP.bf16_add_tb.m_dut.mx_cp[8:0]
+(1)TOP.bf16_add_tb.m_dut.mx_cp[8:0]
+(2)TOP.bf16_add_tb.m_dut.mx_cp[8:0]
+(3)TOP.bf16_add_tb.m_dut.mx_cp[8:0]
+(4)TOP.bf16_add_tb.m_dut.mx_cp[8:0]
+(5)TOP.bf16_add_tb.m_dut.mx_cp[8:0]
+(6)TOP.bf16_add_tb.m_dut.mx_cp[8:0]
+(7)TOP.bf16_add_tb.m_dut.mx_cp[8:0]
+(8)TOP.bf16_add_tb.m_dut.mx_cp[8:0]
+@1401200
+-group_end
+@200
+-cp - m diff 
+@28
+TOP.bf16_add_tb.m_dut.mxy_cp_diff_carry
+@22
+TOP.bf16_add_tb.m_dut.mxy_cp_abs_diff[8:0]
+@200
+-cp - lzc
+@22
+TOP.bf16_add_tb.m_dut.zero_cnt[3:0]
+TOP.bf16_add_tb.m_dut.ex[7:0]
+TOP.bf16_add_tb.m_dut.ex_lzc_cp_diff[7:0]
+@200
+-cp - norm
+@22
+TOP.bf16_add_tb.m_dut.mz_cp_norm[8:0]
+TOP.bf16_add_tb.m_dut.ez_cp_norm[7:0]
+@200
+-res
+@22
+TOP.bf16_add_tb.m_dut.m_o[6:0]
+[pattern_trace] 1
+[pattern_trace] 0
