@@ -203,13 +203,13 @@ end
 // normalize exponent
 wire [E-1:0] ex_lzc_cp_diff;
 wire         ex_lzc_cp_diff_carry; // TODO: overflow detection
-wire         ez_min_inf;
+wire         ez_cp_underflow;
 wire [E-1:0] ez_cp_norm;
 
 assign {ex_lzc_cp_diff_carry, ex_lzc_cp_diff} = ex - {{E-LZC_W{1'b0}}, zero_cnt}; 
-assign ez_min_inf = ex_lzc_cp_diff_carry;// detect undexflow, going to - e_min
+assign ez_cp_underflow = ex_lzc_cp_diff_carry;// detect undexflow, going to 0
 
-assign ez_cp_norm = {E{ez_min_inf}} | ex_lzc_cp_diff; 
+assign ez_cp_norm = {E{~ez_cp_underflow}} & ex_lzc_cp_diff; 
 
 /* ---------------------------------
  * select between close and far path
@@ -244,7 +244,7 @@ assign sc_sel = r_zero | r_nan | r_inf;
 //  - +/i inf
 
 // return
-assign s_o = sx;
+assign s_o = fp_sel ? sx : sx & ~ez_cp_underflow;
 assign e_o = sc_sel ? er_sc : fp_sel ? er_norm : ez_cp_norm;
 assign m_o = sc_sel ? mr_sc : fp_sel ? mr_norm[M-1:0]: mz_cp_norm[M:1];
 
