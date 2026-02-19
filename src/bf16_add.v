@@ -102,21 +102,25 @@ end
 // unlike the p bits commonly found in the litterature
 wire op_sub;
 wire [M+1:0] mr;
+wire [M+1:0] my_shift_neg_comp;
 wire [M+1:0] my_shift_neg;
+wire         my_shift_neg_carry_unused;
+
 wire mr_carry;
+
+wire [M+1:0] mx_expanded; 
+assign mx_expanded = {1'b1, mx, 1'b0};
+
 assign op_sub = sa_i ^ sb_i; 
-assign my_shift_neg  = {M+2{op_sub & y_nzero}} ^ my_shift;
-assign {mr_carry, mr} = {1'b1, mx, 1'b0} // 9
-					  + my_shift_neg
-                      + {{M+1{1'b0}}, op_sub & y_nzero}; // 9
+assign my_shift_neg_comp  = {M+2{op_sub & y_nzero}} ^ my_shift;
+assign {my_shift_neg_carry_unused, my_shift_neg } = my_shift_neg_comp + 
+                      							  + {{M+1{1'b0}}, op_sub & y_nzero}; // 9
+assign {mr_carry, mr} = mx_expanded
+					  + my_shift_neg;
 
 // normalize: 2 bit shifter
 // if addition: division by 2 might be needed 
 // if substraction: multiplication by 2 might be needed
-
-/* verilator lint_off UNUSEDSIGNAL */ 
-logic [M+1:0] mr_prenorm;
-/* verilator lint_on UNUSEDSIGNAL */ 
 
 logic [M-1:0] mr_norm;// removing hidden 1 and extra lsb
 logic [E-1:0] er_norm;
@@ -129,20 +133,20 @@ always @(*) begin
 	casez({mr_carry, mr[M+1]})
 		2'b00: begin // divide by 2
 			{er_norm_carry, er_norm} = ex - {{E-1{1'b0}},1'b1};
-			mr_prenorm = {mr[M:0], 1'b0}; // left shift 1, inject round bit
+			//mr_prenorm = {mr[M:0], 1'b0}; // left shift 1, inject round bit
+			mr_norm = mr[M-1:0]; // left shift 1, inject round bit
 		end
 		2'b1?: begin // multiply by 2 
 			{er_norm_carry, er_norm} = ex + {{E-1{1'b0}},1'b1};
-			mr_prenorm = {1'b0, mr[M+1:1]}; // right shit 1
+			mr_norm = mr[M+1:2]; // right shit 1
 		end
 		2'b01: begin // default
 			er_norm_carry = 1'b0;
 			er_norm = ex;
-			mr_prenorm = mr;
+			mr_norm = mr[M:1]; // removed hidden 1 and sticky 
 		end
 	endcase
 end
-assign mr_norm = mr_prenorm[M:1];
 
 /* ---------
  * close path 
@@ -255,7 +259,7 @@ assign sc_sel = r_zero | r_nan | r_inf;
 // return
 assign s_o = fp_sel ? sx : (sx ^ mxy_cp_diff_carry) & ~xy_eq;// sign is allways + for -N + N/ N - N, convention to help equality comparison
 assign e_o = sc_sel ? er_sc : fp_sel ? er_norm : ez_cp_norm;
-assign m_o = sc_sel ? mr_sc : fp_sel ? mr_norm[M-1:0]: mz_cp_norm;
+assign m_o = sc_sel ? mr_sc : fp_sel ? mr_norm: mz_cp_norm;
 
 `ifdef FORMAL
 
