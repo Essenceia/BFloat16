@@ -185,21 +185,21 @@ lzc #(.W(LZC_V_W)) m_lzc (
 // variable shift : renormalization 
 // using case again for synth
 /* verilator lint_off UNUSEDSIGNAL */
-logic [M+1:0] mz_cp_norm; //partially unused signal [8] and [0] unused 
+logic [M+1:0] mz_cp_norm_lite; //partially unused signal [8] and [0] unused 
 /* verilator lint_on UNUSEDSIGNAL */
 
 always @(*) begin
 	case(zero_cnt) 
-		'd0: mz_cp_norm = mxy_cp_abs_diff; // no cancellation 
-		'd1: mz_cp_norm = {mxy_cp_abs_diff[M:0], 1'b0}; 
-		'd2: mz_cp_norm = {mxy_cp_abs_diff[M-1:0], 2'b0}; 
-		'd3: mz_cp_norm = {mxy_cp_abs_diff[M-2:0], 3'b0}; 
-		'd4: mz_cp_norm = {mxy_cp_abs_diff[M-3:0], 4'b0}; 
-		'd5: mz_cp_norm = {mxy_cp_abs_diff[M-4:0], 5'b0}; 
-		'd6: mz_cp_norm = {mxy_cp_abs_diff[M-5:0], 6'b0}; 
-		'd7: mz_cp_norm = {mxy_cp_abs_diff[M-6:0], 7'b0}; 
-		'd8: mz_cp_norm = {1'b1, 8'b0}; //only 1 left 
-		default: mz_cp_norm = {1'b1,{M+1{1'b0}}}; // full cancellation, nothing is left, made the same as the 8 case
+		'd0: mz_cp_norm_lite = mxy_cp_abs_diff; // no cancellation 
+		'd1: mz_cp_norm_lite = {mxy_cp_abs_diff[M:0], 1'b0}; 
+		'd2: mz_cp_norm_lite = {mxy_cp_abs_diff[M-1:0], 2'b0}; 
+		'd3: mz_cp_norm_lite = {mxy_cp_abs_diff[M-2:0], 3'b0}; 
+		'd4: mz_cp_norm_lite = {mxy_cp_abs_diff[M-3:0], 4'b0}; 
+		'd5: mz_cp_norm_lite = {mxy_cp_abs_diff[M-4:0], 5'b0}; 
+		'd6: mz_cp_norm_lite = {mxy_cp_abs_diff[M-5:0], 6'b0}; 
+		'd7: mz_cp_norm_lite = {mxy_cp_abs_diff[M-6:0], 7'b0}; 
+		'd8: mz_cp_norm_lite = {1'b1, 8'b0}; //only 1 left 
+		default: mz_cp_norm_lite = {1'b1,{M+1{1'b0}}}; // full cancellation, nothing is left, made the same as the 8 case
 												   // could fuse 8 and default case to have mux sel be done
 												   // only on bottom 3 bits ?
 	endcase
@@ -215,6 +215,10 @@ assign {ex_lzc_cp_diff_carry, ex_lzc_cp_diff} = ex - {{E-LZC_W{1'b0}}, zero_cnt}
 assign ez_cp_underflow = ex_lzc_cp_diff_carry;// detect undexflow, going to 0
 
 assign ez_cp_norm = {E{~ez_cp_underflow}} & ex_lzc_cp_diff; 
+
+// denomral round to 0: mantissa correction 
+logic [M-1:0] mz_cp_norm;
+assign mz_cp_norm = {M{~exy_eq}} & mz_cp_norm_lite[M:1];
 
 /* ---------------------------------
  * select between close and far path
@@ -249,9 +253,9 @@ assign sc_sel = r_zero | r_nan | r_inf;
 //  - +/i inf
 
 // return
-assign s_o = fp_sel ? sx : sx & ~xy_eq;
+assign s_o = fp_sel ? sx : (sx ^ mxy_cp_diff_carry) & ~xy_eq;// sign is allways + for -N + N/ N - N, convention to help equality comparison
 assign e_o = sc_sel ? er_sc : fp_sel ? er_norm : ez_cp_norm;
-assign m_o = sc_sel ? mr_sc : fp_sel ? mr_norm[M-1:0]: mz_cp_norm[M:1];
+assign m_o = sc_sel ? mr_sc : fp_sel ? mr_norm[M-1:0]: mz_cp_norm;
 
 `ifdef FORMAL
 

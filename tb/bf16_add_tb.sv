@@ -218,7 +218,7 @@ initial begin
 	#1
 	test_dpi();
 	#1
-	test_batch(0,0);
+	test_batch(128,128);
 `endif
 
 	$finish; 
