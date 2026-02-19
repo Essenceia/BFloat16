@@ -54,7 +54,6 @@ module bf16_add_tb;
 
 localparam E = 8;// exponent
 localparam M = 7;// mantissa (signficant) 
-localparam shortint SMALLEST_INT = 16'b0000000010000000;
 
 logic a_s, b_s, c_s;
 logic [E-1:0] a_e, b_e, c_e;
@@ -66,32 +65,32 @@ task test_zero();
 	//  0 + 0
 	`set_bf16(a, 1'b0, 8'h00, 7'h00);
     `set_bf16(b, 1'b0, 8'h00, 7'h00);
-	#10
+	#1
 	`sva_check_bf16(zero, c, 1'b0, 8'h00, 7'h00);
 
 	// 0 - 0 = +0 
 	`set_bf16(b, 1'b1, 8'h00, 7'h00);
-	#10 
+	#1 
 	`sva_check_bf16(zero_plus, c, 1'b0, 8'h00, 7'h00);
 	
 	// 0 + 1
 	`set_bf16(b, 1'b0, 8'h7f, 7'h00);
-	#10 
+	#1 
 	`sva_check_bf16(one_test0, c, 1'b0, 8'h7f, 7'h00);
 
 	// -0 + 1
 	`set_bf16(a, 1'b1, 8'h00, 7'h00);
-	#10 
+	#1 
 	`sva_check_bf16(one_test1,c, 1'b0, 8'h7f, 7'h00);
 
 	// -0 - 1
 	`set_bf16(b, 1'b1, 8'h7f, 7'h00);
-	#10 
+	#1 
 	`sva_check_bf16(min_one_test0, c, 1'b1, 8'h7f, 7'h00);
 	
 	// 0 - 1
 	`set_bf16(a, 1'b0, 8'h00, 7'h00);
-	#10 
+	#1 
 	`sva_check_bf16(min_one_test1,c, 1'b1, 8'h7f, 7'h00);
 
 	$display("test_zero: PASS");
@@ -110,7 +109,7 @@ task test_nan();
 		`set_bf16(a, nan_sign, {E{1'b1}}, nan_mantissa);
 		for(int j=0; j < `ITER; j++) begin
 			`set_rand_bf16(b)
-			#10
+			#1
 			`sva_check_bf16(nan, c, nan_sign, {E{1'b1}}, {M{1'b1}});
 				
 		end
@@ -125,13 +124,13 @@ task test_inf();
 	// + inf - inf  = nan
 	`set_bf16(a, 1'b0, 8'hFF, 7'h00);
     `set_bf16(b, 1'b1, 8'hFF, 7'h00);
-	#10
+	#1
 	`sva_check_bf16(inf_nan, c, 1'bX, 8'hFF, 7'hFF);
 
 	// + inf + 0 = +inf
 	`set_bf16(a, 1'b0, 8'hFF, 7'h00);
     `set_bf16(b, 1'b0, 8'h00, 7'h00);
-	#10
+	#1
 	`sva_check_bf16(inf_plus_zero, c, 1'b0, 8'hFF, 7'h00);
 
 
@@ -143,7 +142,7 @@ task test_inf();
 		`set_bf16(a, inf_sign, {E{1'b1}}, 7'h00);
 		for(int j=0; j < `ITER; j++) begin
 			`set_rand_bf16(b)
-			#10
+			#1
 			`sva_check_bf16(inf_rand, c, inf_sign, {E{1'b1}}, {M{1'b0}});
 				
 		end
@@ -173,8 +172,6 @@ task test_batch(shortint start_x, shortint start_y);
 	longint cnt; 
 	logic [15:0] a, b, c;
 
-	if (start_x < SMALLEST_INT) start_x = SMALLEST_INT; 
-	if (start_y < SMALLEST_INT) start_y = SMALLEST_INT; 
 	y = start_y;
 
 	cnt = 0;
@@ -190,7 +187,7 @@ task test_batch(shortint start_x, shortint start_y);
 		`set_bf16(a, a[15], a[14:7], a[6:0]);
 		`set_bf16(b, b[15], b[14:7], b[6:0]);
 		`set_bf16(c, c[15], c[14:7], c[6:0]);
-		#10
+		#1
 		$display("%d:", cnt);
 		bf16_pretty_print_triple(i,y,r);
 		`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
@@ -207,18 +204,18 @@ initial begin
 	seed = `RAND_SEED;
 	$urandom(seed);
 
-	#10
+	#1
 	test_zero();
-	#10 
+	#1 
 	test_nan();
-	#10
+	#1
 	test_inf();
 
 `ifdef VERILATOR
 	init_bf16();	
-	#10
+	#1
 	test_dpi();
-	#10
+	#1
 	test_batch(0,0);
 `endif
 

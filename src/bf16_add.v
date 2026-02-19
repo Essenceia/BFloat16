@@ -48,6 +48,13 @@ assign {ex, ey} = ~eab_diff_carry ? {ea_i, eb_i}: {eb_i, ea_i};
 assign {mx, my} = ~eab_diff_carry ? {ma_i, mb_i}: {mb_i, ma_i}; 
 assign {sx, sy_unused} = ~eab_diff_carry ? {sa_i, sb_i}: {sb_i, sa_i};
 
+// equality check, parallel check to determine close path sign for special 
+// case where N - N / -N + N = +0
+wire mab_eq, exy_eq, xy_eq;
+assign mab_eq = ma_i == mb_i; // if they are equal, we don't care about swap
+assign exy_eq = ~eab_diff_carry & ~eba_diff_carry; // 1 = equal, 0 = not equal 
+assign xy_eq  = mab_eq & exy_eq; 
+
 // identify corner cases : 
 // +/- zero 
 // +/- infinity
@@ -142,11 +149,9 @@ assign mr_norm = mr_prenorm[M:1];
  * ---------- */
 
 // 1 bit shift
-wire exy_eq; 
 wire [M+1:0] my_cp_shifted; // p+1 width, including hidden 1
 wire [M+1:0] mx_cp; 
 
-assign exy_eq = ~eab_diff_carry & ~eba_diff_carry; // 1 = equal, 0 = not equal 
 assign my_cp_shifted = exy_eq ? {y_nzero, my, 1'b0} : 
 								{1'b0, y_nzero, my}; // div 2, e_x - e_y = 1, e_x - e_y > 1 will be handed by far path  
 assign mx_cp = { 1'b1, mx, 1'b0};
@@ -244,7 +249,7 @@ assign sc_sel = r_zero | r_nan | r_inf;
 //  - +/i inf
 
 // return
-assign s_o = fp_sel ? sx : sx & ~ez_cp_underflow;
+assign s_o = fp_sel ? sx : sx & ~xy_eq;
 assign e_o = sc_sel ? er_sc : fp_sel ? er_norm : ez_cp_norm;
 assign m_o = sc_sel ? mr_sc : fp_sel ? mr_norm[M-1:0]: mz_cp_norm[M:1];
 

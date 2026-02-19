@@ -11,6 +11,7 @@
 #include <iomanip>
 
 #define HW_NAN 0x7FFF
+
 #define IS_SUBNORMAL(x) (!(isnormal(x) | isnan(x) | isinf(x) | (x == 0e0bf16)))
 
 using namespace std; 
@@ -47,7 +48,7 @@ short bf16_subnormal_to_zero(short x){
 bfloat16_t expected_hw_result(bfloat16_t x){
 	x = _subnormal_to_zero(x);
 	if (isnan(x)){
-		uint16_t nan = HW_NAN; 
+		uint16_t nan = HW_NAN | ((uint16_t)signbit(x) << 15); 
 		memcpy(&x, &nan, sizeof(bfloat16_t));
 	}
 	return x;
