@@ -125,12 +125,12 @@ assign {mr_carry, mr} = mx_expanded
 logic [M-1:0] mr_norm;// removing hidden 1 and extra lsb
 logic [E-1:0] er_norm;
 /* verilator lint_off UNUSEDSIGNAL */
-logic         er_norm_carry; // TODO overload identification ? 
+logic         er_norm_carry; // TODO overflow identification ? 
 /* verilator lint_on UNUSEDSIGNAL */
 
 // a little ugly but useing a case to give more flexibility for optimization
 always @(*) begin
-	casez({mr_carry, mr[M+1]})
+	casez({mr_carry & ~op_sub, mr[M+1]})
 		2'b00: begin // divide by 2
 			{er_norm_carry, er_norm} = ex - {{E-1{1'b0}},1'b1};
 			//mr_prenorm = {mr[M:0], 1'b0}; // left shift 1, inject round bit
