@@ -176,22 +176,24 @@ task test_batch(shortint start_x, shortint start_y);
 
 	cnt = 0;
 	for(shortint i = start_x; i < 16'hffff; i++) begin
-		// sanitize inputs
-		x = bf16_subnormal_to_zero(i); 
-		y = bf16_subnormal_to_zero(y);
-	
-		r = bf16_add(x, y);
-		a = x; 
-		b = y; 
-		c = r; 
-		`set_bf16(a, a[15], a[14:7], a[6:0]);
-		`set_bf16(b, b[15], b[14:7], b[6:0]);
-		`set_bf16(c, c[15], c[14:7], c[6:0]);
-		#1
-		$display("%d:", cnt);
-		bf16_pretty_print_triple(i,y,r);
-		`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
-		cnt = cnt + 1;
+		for(shortint j = (i == start_x)? start_y : 0; j < 16'hffff; j++) begin
+			// sanitize inputs
+			x = bf16_subnormal_to_zero(i); 
+			y = bf16_subnormal_to_zero(j);
+		
+			r = bf16_add(x, y);
+			a = x; 
+			b = y; 
+			c = r; 
+			`set_bf16(a, a[15], a[14:7], a[6:0]);
+			`set_bf16(b, b[15], b[14:7], b[6:0]);
+			`set_bf16(c, c[15], c[14:7], c[6:0]);
+			#1
+			$display("%d:", cnt);
+			bf16_pretty_print_triple(i,y,r);
+			`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
+			cnt = cnt + 1;
+		end
 	end
 endtask 
 `endif
