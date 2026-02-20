@@ -72,3 +72,30 @@ In order to use this as a golden model for the hardware, I will
 need to manually clamp subnormals to 0. To this end, I can probably use 
 the `cmath` standard `isnormal` wrapper.
 
+## Betrayed by C++
+
+Quote from the C++ 2022 published proposal on "Extended floating-point types and standard names" : 
+```
+7.2. Supported formats
+
+We propose aliases for the following layouts:
+
+    [IEEE-754-2008] binary16 - IEEE 16-bit.
+    [IEEE-754-2008] binary32 - IEEE 32-bit.
+    [IEEE-754-2008] binary64 - IEEE 64-bit.
+    [IEEE-754-2008] binary128 - IEEE 128-bit.
+    bfloat16, which is binary32 with 16 bits of precision truncated; see [bfloat16]. <-- !
+```
+Essentially, this means `bfloat16_t` will be calculated using a `float32_t` (refered to as binary32 in the IEEE spec) 
+and then truncated down. 
+The problem with this approach is that, `float32_t` has a much larger internal precision $p$ when compared 
+with `bfloat16_t` : 
+- `float32_t` $p = 24$ 
+- `bfloat16_t` $p = 8$
+
+In practice, this means that, if I want my hw to correctly match the golden model, as specificed by 
+the C++ standard library, I will need to support $p = 24$, which directly translates to a much 
+widder significant shift + adder path on the adder far path ... and that is in no universe the outcome 
+I am intrested in. 
+
+source: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p1467r9.html#alias-formats
