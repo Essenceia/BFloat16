@@ -3,6 +3,8 @@
 #include <bitset> 
 #include <cstring> 
 #include <cmath> 
+#include <cfenv>
+#include <iomanip>
 
 using namespace std; 
 
@@ -10,10 +12,23 @@ using namespace std;
 #error No support for bfloat16_t
 #endif
 
+typedef struct {
+	uint8_t mantissa: 7;
+	uint8_t exponent: 8;
+	uint8_t sign : 1; 
+} __attribute__((packed)) bf16_u; 
+
+
 void pretty_print(bfloat16_t x, string name){
 	uint16_t tmp; 
+	bf16_u u;
 	memcpy(&tmp, &x, sizeof(uint16_t));
-	cout << name << ": 16'h" <<std::hex << tmp  << " - 16'b"<<  bitset<16>{tmp}  << " (" << scientific << x << ")" << endl; 
+	static_assert(sizeof(bf16_u) == sizeof(bfloat16_t));
+	memcpy(&u, &x, sizeof(bf16_u));
+
+	cout << "16'h" <<std::hex << setfill('0') << setw(4) << tmp << 
+	" | 16'b"<<  bitset<1>{u.sign} << "_" << bitset<8>{u.exponent} << "_" << bitset<7>{u.mantissa}
+	<< " | " << scientific << x << endl; 
 }
 
 void pretty_print_triplet(bfloat16_t a, bfloat16_t b, bfloat16_t c){
@@ -64,7 +79,24 @@ void test_inf(){
 	pretty_print_triplet(a,b,c);	
 }
 
+void test_f32_bf16_conversion_behavior(){
+	bfloat16_t a,b,c;
+	uint16_t hb = 0x84ff;
+	a = set_bf16((uint16_t)0x0080);
+	cout << "Testing impact of f32 -> bf16 conversion on mantissa " << endl; 
+	for(int i = 0; i < 4; i++){	
+		b = set_bf16(hb);
+		c = a + b; 
+		pretty_print_triplet(a,b,c);
+		cout << endl;
+		hb++;
+	}
+}
+
+
 int main(){
+	fesetround(FE_TOWARDZERO);
+	
 	bfloat16_t a, b, c;
 
 	a = 1e0bf16; 
@@ -74,6 +106,8 @@ int main(){
 
 	test_subnormal();
 	test_inf();
+
+	test_f32_bf16_conversion_behavior();
 
 	return 0;
 } 
