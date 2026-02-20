@@ -17,6 +17,7 @@ import "DPI-C" function shortint bf16_add(input shortint x, input shortint y);
 import "DPI-C" function shortint bf16_subnormal_to_zero(input shortint x); 
 import "DPI-C" function void bf16_pretty_print(input shortint x); 
 import "DPI-C" function void bf16_pretty_print_triple(input shortint x, input shortint y, input shortint z); 
+import "DPI-C" function shortint bf16_calculate_relative_error(input shortint x, input shortint y);
 `endif
 
 `define _sva_error_msg(name, exp, got) \
@@ -170,7 +171,9 @@ endtask
 task test_batch(shortint start_x, shortint start_y);
 	shortint x,y,r; 
 	longint cnt; 
+	shortint got;
 	logic [15:0] a, b, c;
+	shortint pass; 
 
 	y = start_y;
 
@@ -187,11 +190,15 @@ task test_batch(shortint start_x, shortint start_y);
 			c = r; 
 			`set_bf16(a, a[15], a[14:7], a[6:0]);
 			`set_bf16(b, b[15], b[14:7], b[6:0]);
-			`set_bf16(c, c[15], c[14:7], c[6:0]);
 			#1
 			$display("%d:", cnt);
 			bf16_pretty_print_triple(i,y,r);
-			`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
+
+			got = { c_s, c_e, c_m };;
+			pass = bf16_calculate_relative_error(r, got);	
+			if (pass == 0) begin
+				`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
+			end
 			cnt = cnt + 1;
 		end
 	end

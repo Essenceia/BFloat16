@@ -83,7 +83,7 @@ void bf16_pretty_print(short x){
 	static_assert(sizeof(bf16_u) == sizeof(bfloat16_t));
 	memcpy(&u, &x, sizeof(bf16_u));
 
-	cout << "16'h" <<std::hex << setfill('0') << setw(4) << x << 
+	cout << "16'h" << hex << setfill('0') << setw(4) << x << 
 	" | 16'b"<<  bitset<1>{u.sign} << "_" << bitset<8>{u.exponent} << "_" << bitset<7>{u.mantissa}
 	<< " | " << scientific << f << endl; 
 }
@@ -93,4 +93,38 @@ void bf16_pretty_print_triple(short x, short y, short z){
 	bf16_pretty_print(y);
 	bf16_pretty_print(z);
 	cout << endl;
+}
+
+
+// calculate the relative error between the ideal c++23 bf16 calculation 
+// and the hardware given we are working on an different precision
+// Error will allways be triggered on zero/inf/nan, this is expected behavior
+short bf16_calculate_relative_error(short exp, short got){
+	float64_t ulp, error;
+	bfloat16_t ebf, gbf;
+	float64_t ef64, gf64; 
+	short pass; 
+	
+	ulp = pow(2.0, -7.0);
+
+	memcpy(&ebf, &exp, sizeof(bfloat16_t)); 
+	memcpy(&gbf, &got, sizeof(bfloat16_t)); 
+
+	// convert to f64, we are going to be needing the extra precision	
+	ef64 = ebf; 
+	gf64 = gbf;
+
+	error = (gf64 - ef64)/ef64;
+
+	pass = (error <= ulp)? 1 : 0;
+
+	if (pass == 0){
+		cout << "relative error comparison " << endl;
+		cout << "got :"; 
+		bf16_pretty_print(got);
+		cout << "exp :"; 
+		bf16_pretty_print(exp);
+		cout << (pass? "PASS" : "ERROR") << " relative error between expected " << scientific << ef64 << " and got " << scientific << gf64 << " is " << scientific << error << " ulp " << ulp << endl;
+	}
+	return pass; 
 }
