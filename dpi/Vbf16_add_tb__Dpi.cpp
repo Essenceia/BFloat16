@@ -119,12 +119,11 @@ short bf16_calculate_relative_error(short exp, short got){
 	pass = (error <= ulp)? 1 : 0;
 
 	if (pass == 0){
-		cout << "relative error comparison " << endl;
 		cout << "got :"; 
 		bf16_pretty_print(got);
 		cout << "exp :"; 
 		bf16_pretty_print(exp);
-		cout << (pass? "PASS" : "ERROR") << " relative error between expected " << scientific << ef64 << " and got " << scientific << gf64 << " is " << scientific << error << " ulp " << ulp << endl;
+		cout << " relative error between expected " << scientific << ef64 << " and got " << scientific << gf64 << " is " << scientific << error << " ulp " << ulp << endl;
 	}
 	return pass; 
 }

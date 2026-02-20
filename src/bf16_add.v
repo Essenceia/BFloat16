@@ -222,7 +222,7 @@ assign ez_cp_norm = {E{~ez_cp_underflow}} & ex_lzc_cp_diff;
 
 // denomral round to 0: mantissa correction 
 logic [M-1:0] mz_cp_norm;
-assign mz_cp_norm = {M{~exy_eq}} & mz_cp_norm_lite[M:1];
+assign mz_cp_norm = {M{~(exy_eq | ~|ez_cp_norm) }} & mz_cp_norm_lite[M:1];
 
 /* ---------------------------------
  * select between close and far path

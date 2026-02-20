@@ -1,22 +1,22 @@
 [*]
 [*] GTKWave Analyzer v3.3.115 (w)1999-2023 BSI
-[*] Thu Feb 19 20:52:48 2026
+[*] Fri Feb 20 22:22:02 2026
 [*]
 [dumpfile] "/home/pitchu/rtl/bf16/wave/bf16_add_tb.vcd"
-[dumpfile_mtime] "Thu Feb 19 20:27:34 2026"
-[dumpfile_size] 12823763
+[dumpfile_mtime] "Fri Feb 20 22:22:02 2026"
+[dumpfile_size] 933593255
 [savefile] "/home/pitchu/rtl/bf16/conf/add.gtkw"
-[timestart] 332365
+[timestart] 986435
 [size] 1910 470
 [pos] -961 -1
-*0.000000 332370 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*0.000000 986440 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.bf16_add_tb.
 [treeopen] TOP.bf16_add_tb.m_dut.
 [sst_width] 290
-[signals_width] 259
+[signals_width] 345
 [sst_expanded] 1
-[sst_vpaned_height] 58
+[sst_vpaned_height] 160
 @28
 TOP.bf16_add_tb.m_dut.sa_i
 @22
@@ -49,7 +49,7 @@ TOP.bf16_add_tb.m_dut.my_shift[8:0]
 (6)TOP.bf16_add_tb.m_dut.my_shift[8:0]
 (7)TOP.bf16_add_tb.m_dut.my_shift[8:0]
 (8)TOP.bf16_add_tb.m_dut.my_shift[8:0]
-@1401204
+@1401200
 -group_end
 @c00024
 TOP.bf16_add_tb.m_dut.my_shift_neg[8:0]
@@ -63,9 +63,15 @@ TOP.bf16_add_tb.m_dut.my_shift_neg[8:0]
 (6)TOP.bf16_add_tb.m_dut.my_shift_neg[8:0]
 (7)TOP.bf16_add_tb.m_dut.my_shift_neg[8:0]
 (8)TOP.bf16_add_tb.m_dut.my_shift_neg[8:0]
-@1401204
+@1401200
 -group_end
-@c00024
+@200
+-fp - add/diff
+@28
+TOP.bf16_add_tb.m_dut.my_shift_neg_carry_unused
+@22
+TOP.bf16_add_tb.m_dut.my_shift_neg[8:0]
+@c00028
 TOP.bf16_add_tb.m_dut.mr[8:0]
 @28
 (0)TOP.bf16_add_tb.m_dut.mr[8:0]
@@ -77,13 +83,12 @@ TOP.bf16_add_tb.m_dut.mr[8:0]
 (6)TOP.bf16_add_tb.m_dut.mr[8:0]
 (7)TOP.bf16_add_tb.m_dut.mr[8:0]
 (8)TOP.bf16_add_tb.m_dut.mr[8:0]
-@1401204
+@1401208
 -group_end
 @24
 TOP.bf16_add_tb.m_dut.mx[6:0]
 @28
 TOP.bf16_add_tb.m_dut.mr_carry
-@29
 TOP.bf16_add_tb.m_dut.er_norm[7:0]
 @200
 -sel
@@ -117,7 +122,7 @@ TOP.bf16_add_tb.m_dut.mx_cp[8:0]
 TOP.bf16_add_tb.m_dut.mxy_cp_diff_carry
 @22
 TOP.bf16_add_tb.m_dut.mxy_cp_abs_diff[8:0]
-@200
+@201
 -cp - lzc
 @22
 TOP.bf16_add_tb.m_dut.zero_cnt[3:0]
@@ -127,6 +132,8 @@ TOP.bf16_add_tb.m_dut.ex_lzc_cp_diff[7:0]
 TOP.bf16_add_tb.m_dut.ex_lzc_cp_diff_carry
 @200
 -cp - norm
+@28
+TOP.bf16_add_tb.m_dut.ez_cp_underflow
 @22
 TOP.bf16_add_tb.m_dut.ez_cp_norm[7:0]
 @200
