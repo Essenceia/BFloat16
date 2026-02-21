@@ -90,7 +90,7 @@ always @(*) begin
 		'd4: my_shift = {4'b0, y_nzero, my[M-1:3]};
 		'd5: my_shift = {5'b0, y_nzero, my[M-1:4]};
 		'd6: my_shift = {6'b0, y_nzero, my[M-1:5]};
-		'd7: my_shift = {7'b0, y_nzero, my[6]};
+		'd7: my_shift = {7'b0, y_nzero, my[M-1]};
 		'd8: my_shift = {8'b0, y_nzero};
 		default: my_shift = {9'b0}; // 8+, sel is only on bottom 3 bits of exy_diff, else clamp to 0 
 	endcase
@@ -118,6 +118,11 @@ assign {my_shift_neg_carry_unused, my_shift_neg } = my_shift_neg_comp +
 assign {mr_carry, mr} = mx_expanded
 					  + my_shift_neg;
 
+// rounds to zero: clamps to largest finite number in case of overflow to +/-
+// inf
+logic rz_max; 
+assign rz_max = {{E-1{1'b1}}, 1'b0} == ex; 
+
 // normalize: 2 bit shifter
 // if addition: division by 2 might be needed 
 // if substraction: multiplication by 2 might be needed
@@ -137,8 +142,8 @@ always @(*) begin
 			mr_norm = mr[M-1:0]; // left shift 1, inject round bit
 		end
 		2'b1?: begin // multiply by 2 
-			{er_norm_carry, er_norm} = ex + {{E-1{1'b0}},1'b1};
-			mr_norm = mr[M+1:2]; // right shit 1
+			{er_norm_carry, er_norm} = ex + {{E-1{1'b0}}, ~rz_max};
+			mr_norm = rz_max ? {M{1'b1}}: mr[M+1:2]; // right shit 1
 		end
 		2'b01: begin // default
 			er_norm_carry = 1'b0;
