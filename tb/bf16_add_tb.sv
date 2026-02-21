@@ -163,7 +163,7 @@ task test_dpi();
 	y = {b_s, b_e, b_m};
 
 	// call dpi 
-	r = bf16_add(x,y); 
+	r = bf16_add(x,y);
 	bf16_pretty_print_triple(x,y,r);
 endtask 
 
@@ -191,15 +191,27 @@ task test_batch(shortint start_x, shortint start_y);
 			`set_bf16(a, a[15], a[14:7], a[6:0]);
 			`set_bf16(b, b[15], b[14:7], b[6:0]);
 			#1
+`ifdef DEBUG
 			$display("%d:", cnt);
 			bf16_pretty_print_triple(i,y,r);
-
+`endif
 			got = { c_s, c_e, c_m };;
 			pass = bf16_calculate_relative_error(r, got);	
 			if (pass == 0) begin
-				`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
+				if (got != r) begin // pass will missfire on corner cases due to float unordering, kepping this behavior to not miss corner cases
+					$display("Error detected at iteration $d", cnt);
+					bf16_pretty_print_triple(i, y, r);
+					`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
+				end
 			end
 			cnt = cnt + 1;
+`ifndef DEBUG
+			// log progress
+			if (cnt % 1000000 == 0) begin
+				$display("cnt: %d", cnt);
+				bf16_pretty_print_triple(i,y,r);
+			end
+`endif
 		end
 	end
 endtask 
@@ -221,11 +233,14 @@ initial begin
 	test_inf();
 
 `ifdef VERILATOR
-	init_bf16();	
+	init_bf16();
+	`ifdef DEBUG	
 	#1
 	test_dpi();
+	`endif
 	#1
-	test_batch(128,128);
+	//test_batch(16'b0000010100000000,16'b100001010000000);
+	test_batch(0,0);
 `endif
 
 	$finish; 

@@ -30,8 +30,10 @@ void init_bf16(){
 bfloat16_t _subnormal_to_zero(bfloat16_t x){
 	if IS_SUBNORMAL(x) {
 		bool pos = !signbit(x);
+#ifdef DEBUG
 		cout << "rounding subnormal to "<< (pos?"+":"-") <<"0.0 from " << scientific << x << " [normal:"<<
 		isnormal(x) << ", nan:"<< isnan(x) << ", inf:"<< isinf(x) << "]" << endl;
+#endif
 		if (pos) x = 0e0bf16;
 		else x = -0e0bf16; // because -0 is a thing I want to handle
 	}
@@ -118,6 +120,7 @@ short bf16_calculate_relative_error(short exp, short got){
 
 	pass = (error <= ulp)? 1 : 0;
 
+#ifdef DEBUG
 	if (pass == 0){
 		cout << "got :"; 
 		bf16_pretty_print(got);
@@ -125,5 +128,6 @@ short bf16_calculate_relative_error(short exp, short got){
 		bf16_pretty_print(exp);
 		cout << " relative error between expected " << scientific << ef64 << " and got " << scientific << gf64 << " is " << scientific << error << " ulp " << ulp << endl;
 	}
+#endif
 	return pass; 
 }

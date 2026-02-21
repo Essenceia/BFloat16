@@ -109,7 +109,7 @@ BUILD_FLAGS += $(if $(cov), --coverage --coverage-underscore)
 BUILD_FLAGS += --timing
 BUILD_FLAGS += --x-initial-edge
 endif
-
+BUILD_FLAGS += $(if $(debug),-DDEBUG)  
 
 #########
 # Build #
