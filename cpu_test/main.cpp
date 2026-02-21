@@ -25,10 +25,10 @@ typedef struct {
 	uint8_t  sign : 1; 
 } __attribute__((packed)) f64_u; 
 
-void pretty_print_f64(bfloat16_t x, string name){
+void pretty_print_f64(float64_t x, string name){
 	uint64_t tmp; 
-	bf16_u u;
-	memcpy(&tmp, &x, sizeof(uint16_t));
+	f64_u u;
+	memcpy(&tmp, &x, sizeof(uint64_t));
 	static_assert(sizeof(f64_u) == sizeof(float64_t));
 	memcpy(&u, &x, sizeof(f64_u));
 
@@ -58,7 +58,7 @@ void pretty_print_triplet(bfloat16_t a, bfloat16_t b, bfloat16_t c){
 
 void pretty_print_triplet_f64(float64_t a, float64_t b, float64_t c){
 	pretty_print_f64(a, "a");
-	pretty_print_f64(b, "d");
+	pretty_print_f64(b, "b");
 	pretty_print_f64(c, "c");
 }
 bfloat16_t set_bf16(uint16_t u){
@@ -122,13 +122,15 @@ void test_corner_case(){
 	float64_t fa, fb, fc; 
 	a = set_bf16((uint16_t)0x7b80);
 	b = set_bf16((uint16_t)0x7f7f);
+	c = a+b;	
+	pretty_print_triplet(a,b,c);
+	
+	// bf16 -> f64 implicit conversion
 	fa = a; 
 	fb = b; 
-	c = a+b;	
 	fc = fa+fb; 
-	pretty_print_triplet(a,b,c);
 	cout << "f64" << endl;
-	pretty_print_triplet_f64(a,b,c);
+	pretty_print_triplet_f64(fa,fb,fc);
 }
 
 int main(){
