@@ -19,6 +19,24 @@ typedef struct {
 } __attribute__((packed)) bf16_u; 
 
 
+typedef struct {
+	uint64_t mantissa: 52;
+	uint16_t exponent: 11;
+	uint8_t  sign : 1; 
+} __attribute__((packed)) f64_u; 
+
+void pretty_print_f64(bfloat16_t x, string name){
+	uint64_t tmp; 
+	bf16_u u;
+	memcpy(&tmp, &x, sizeof(uint16_t));
+	static_assert(sizeof(f64_u) == sizeof(float64_t));
+	memcpy(&u, &x, sizeof(f64_u));
+
+	cout << "64'h" <<std::hex << setfill('0') << setw(16) << tmp << 
+	" | 64'b"<<  bitset<1>{u.sign} << "_" << bitset<11>{u.exponent} << "_" << bitset<52>{u.mantissa}
+	<< " | " << scientific << x << endl; 
+}
+
 void pretty_print(bfloat16_t x, string name){
 	uint16_t tmp; 
 	bf16_u u;
@@ -31,12 +49,18 @@ void pretty_print(bfloat16_t x, string name){
 	<< " | " << scientific << x << endl; 
 }
 
+
 void pretty_print_triplet(bfloat16_t a, bfloat16_t b, bfloat16_t c){
 	pretty_print(a, "a");
 	pretty_print(b, "d");
 	pretty_print(c, "c");
 }
 
+void pretty_print_triplet_f64(float64_t a, float64_t b, float64_t c){
+	pretty_print_f64(a, "a");
+	pretty_print_f64(b, "d");
+	pretty_print_f64(c, "c");
+}
 bfloat16_t set_bf16(uint16_t u){
 	bfloat16_t r; 
 	static_assert(sizeof(bfloat16_t) == sizeof(uint16_t));	
@@ -93,6 +117,19 @@ void test_f32_bf16_conversion_behavior(){
 	}
 }
 
+void test_corner_case(){
+	bfloat16_t a, b, c; 
+	float64_t fa, fb, fc; 
+	a = set_bf16((uint16_t)0x7b80);
+	b = set_bf16((uint16_t)0x7f7f);
+	fa = a; 
+	fb = b; 
+	c = a+b;	
+	fc = fa+fb; 
+	pretty_print_triplet(a,b,c);
+	cout << "f64" << endl;
+	pretty_print_triplet_f64(a,b,c);
+}
 
 int main(){
 	fesetround(FE_TOWARDZERO);
@@ -108,6 +145,8 @@ int main(){
 	test_inf();
 
 	test_f32_bf16_conversion_behavior();
+
+	test_corner_case(); 
 
 	return 0;
 } 
