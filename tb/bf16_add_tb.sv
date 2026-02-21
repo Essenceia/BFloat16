@@ -199,7 +199,7 @@ task test_batch(shortint start_x, shortint start_y);
 			pass = bf16_calculate_relative_error(r, got);	
 			if (pass == 0) begin
 				if (got != r) begin // pass will missfire on corner cases due to float unordering, kepping this behavior to not miss corner cases
-					$display("Error detected at iteration $d", cnt);
+					$display("Error detected at iteration %d", cnt);
 					bf16_pretty_print_triple(i, y, r);
 					`sva_check_bf16(batch_test, c, c[15], c[14:7], c[6:0]);
 				end
@@ -239,8 +239,8 @@ initial begin
 	test_dpi();
 	`endif
 	#1
-	//test_batch(16'b0000010100000000,16'b100001010000000);
-	test_batch(0,0);
+	test_batch(16'h7b80,16'h7f7f);
+	//test_batch(0,0);
 `endif
 
 	$finish; 
