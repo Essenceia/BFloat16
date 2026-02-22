@@ -257,12 +257,12 @@ assign mr_sc = {M{r_nan}};
 assign er_sc = {E{~r_zero}};
 assign sc_sel = r_zero | r_nan | r_inf; 
 
-// TODO: handling corner cases : 
-//  - round subnormals to 0 
-//  - +/i inf
+// special sign case inf - inf = -nan, breaks the equality convention
+wire sc_sign_sel;
+assign sc_sign_sel = ((x_nan & y_nan)|(x_inf & y_inf)) & op_sub; 
 
 // return
-assign s_o = fp_sel ? sx : (sx ^ mxy_cp_diff_carry) & ~xy_eq;// sign is allways + for -N + N/ N - N, convention to help equality comparison
+assign s_o = sc_sign_sel ? (x_inf & y_inf) : fp_sel ? sx : (sx ^ mxy_cp_diff_carry) & ~xy_eq;// sign is allways + for -N + N/ N - N, convention to help equality comparison
 assign e_o = sc_sel ? er_sc : fp_sel ? er_norm : ez_cp_norm;
 assign m_o = sc_sel ? mr_sc : fp_sel ? mr_norm: mz_cp_norm;
 

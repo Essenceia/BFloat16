@@ -115,6 +115,12 @@ task test_nan();
 				
 		end
 	end
+	// +nan - nan  = +nan
+	`set_bf16(a, 1'b0, 8'hFF, 7'h01);
+    `set_bf16(b, 1'b1, 8'hFF, 7'h03);
+	#1
+	`sva_check_bf16(diff_nan, c, 1'b0, 8'hFF, 7'hFF);	
+
 	$display("test_nan: PASS");
 endtask
 
@@ -122,11 +128,11 @@ endtask
 task test_inf();
 	logic inf_sign; 
 	
-	// + inf - inf  = nan
+	// + inf - inf  = -nan
 	`set_bf16(a, 1'b0, 8'hFF, 7'h00);
     `set_bf16(b, 1'b1, 8'hFF, 7'h00);
 	#1
-	`sva_check_bf16(inf_nan, c, 1'bX, 8'hFF, 7'hFF);
+	`sva_check_bf16(inf_nan, c, 1'b1, 8'hFF, 7'hFF);
 
 	// + inf + 0 = +inf
 	`set_bf16(a, 1'b0, 8'hFF, 7'h00);
@@ -239,7 +245,8 @@ initial begin
 	test_dpi();
 	`endif
 	#1
-	test_batch(16'h7b80,16'h7f7f);
+	test_batch(16'h7f80,16'hff80);
+	//test_batch(16'h7b80,16'h7f7f);
 	//test_batch(0,0);
 `endif
 
