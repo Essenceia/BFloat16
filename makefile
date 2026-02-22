@@ -126,7 +126,7 @@ else
 define BUILD
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(WAIVER_FILE)
-	verilator --binary -CFLAGS -std=c++23 -CFLAGS -lstdc++ $(LINT_FLAGS) -j 0 $(BUILD_FLAGS) -o $2 $1  
+	verilator --binary -CFLAGS -std=c++23 -CFLAGS -lstdc++ $(LINT_FLAGS) -j 10 $(BUILD_FLAGS) -o $2 $1  
 endef
 endif
 
