@@ -119,7 +119,8 @@ void test_f32_bf16_conversion_behavior(){
 
 void test_corner_case(){
 	bfloat16_t a, b, c; 
-	float64_t fa, fb, fc; 
+	float64_t fa, fb, fc;
+ 
 	a = set_bf16((uint16_t)0x7b80);
 	b = set_bf16((uint16_t)0x7f7f);
 	c = a+b;	
@@ -148,6 +149,8 @@ int main(){
 
 	test_f32_bf16_conversion_behavior();
 
+	test_corner_case(); 
+	fesetround(FE_UPWARD);
 	test_corner_case(); 
 
 	return 0;
