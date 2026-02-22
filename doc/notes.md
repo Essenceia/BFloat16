@@ -172,4 +172,12 @@ need to add support for inf and NaN to the hardware, given these can now, never 
 produced as long as they are not feed as inputs. 
 
 The current plan is to finish a v1 with the support for inf and NaN and then remove them
-in a v2. 
+in a v2.
+
+## License
+
+Copyright (c) 2026, Julia Desmazes. All rights reserved.
+
+This work is licensed under the Creative Commons Attribution-NonCommercial
+4.0 International License. 
+ 
