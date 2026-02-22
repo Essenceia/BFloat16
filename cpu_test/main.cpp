@@ -84,14 +84,14 @@ void test_subnormal(){
 void test_inf(){
 	bfloat16_t a,b,c; 
 
-	a = INFINITY; 
+	a = -INFINITY; 
 	b = INFINITY; 	
-	c = a - b;
+	c = a + b;
 	// inf - inf = nan ? 
 	cout << "Testing inf NaN adder corner case" << endl;
 
-	if(isnan(c)) cout << "PASS: inf - inf = nan - expected behavior" << endl; 
-	else cout << "ERROR: unexpected behavior" << endl;
+	if(isnan(c) && signbit(c)) cout << "PASS: inf - inf = -nan - expected behavior" << endl; 
+	else cout << "ERROR: unexpected behavior got " << scientific << c << endl;
 
 	pretty_print_triplet(a,b,c);	
 
@@ -152,6 +152,8 @@ int main(){
 	test_corner_case(); 
 	fesetround(FE_UPWARD);
 	test_corner_case(); 
+	
+	fesetround(FE_TOWARDZERO);
 
 	return 0;
 } 
