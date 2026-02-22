@@ -12,6 +12,8 @@
 
 #define HW_NAN 0x7FFF
 
+#define BF16_DEFAULT_VAL 0e0bf16
+
 #define IS_SUBNORMAL(x) (!(isnormal(x) | isnan(x) | isinf(x) | (x == 0e0bf16)))
 
 using namespace std; 
@@ -39,20 +41,22 @@ bfloat16_t _subnormal_to_zero(bfloat16_t x){
 	}
 	return x;
 };
-short bf16_subnormal_to_zero(short x){
+// format expected input, remove : 
+// inf
+// nan
+// subnormals
+short bf16_remap_input(short x){
 	bfloat16_t f; 
 	memcpy(&f, &x, sizeof(bfloat16_t));
 	f = _subnormal_to_zero(f);
+	if (isnan(f) || isinf(f)) f = BF16_DEFAULT_VAL;
 	memcpy(&x, &f, sizeof(short)); 
 	return x; 
 }
 
 bfloat16_t expected_hw_result(bfloat16_t x){
 	x = _subnormal_to_zero(x);
-	if (isnan(x)){
-		uint16_t nan = HW_NAN | ((uint16_t)signbit(x) << 15); 
-		memcpy(&x, &nan, sizeof(bfloat16_t));
-	}
+	assert(!(isnan(x) || isinf(x)));
 	return x;
 };
 
@@ -66,8 +70,8 @@ short bf16_add(short x, short y){
 	memcpy(&b, &y, sizeof(bfloat16_t));
 
 	// input should not be subnormal
-	assert(IS_SUBNORMAL(a) == false && "Unexpected subnormal input on a");
-	assert(IS_SUBNORMAL(b) == false && "Unexpected subnormal input on b");
+	assert((IS_SUBNORMAL(a)|| isnan(a) || isinf(a)) == false && "Unexpected subnormal/inf/nan input on a");
+	assert((IS_SUBNORMAL(b)|| isnan(b) || isinf(b)) == false && "Unexpected subnormal/inf/nan input on b");
 
 	c = a + b; 
 	
