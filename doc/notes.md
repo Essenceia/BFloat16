@@ -99,3 +99,77 @@ widder significant shift + adder path on the adder far path ... and that is in n
 I am intrested in. 
 
 source: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p1467r9.html#alias-formats
+
+### Within 1 ulp 
+
+Given the c++ standard's libraries implementation of `bfloat16_t` of using a `float32_t` under the hood 
+I cannot cleanly match the results of my golden model to the expected RTL output. 
+This is because `float32_t` has $p=24$ bits on internal precision, while `bloat16_t` has 8 bits, given the
+same input values, if the difference in exponent between these inputs if within range $]p_{bfloat16}; p_{float32}[$
+I might observe a rounding difference. 
+Due to the nature of the underlying cause of this rounding difference, this will occure indenependantly 
+of the rounding mode. 
+Another property of this difference is that is will be contained within a margin of the next 
+consequtive floating point number.
+
+To help simplify the following section, let me define $ulp(x)$ as the "unit of last place", 
+or more formally : 
+
+> $ulp(x)$ is the gap between the two floating-point numbers nearest to $x$, even if $x$ is one of them
+~ William Kahan, 1960. 
+
+As such, my relative error between my golden model's `bfloat16_t` and my implementation will be at most 
+of $1 ulp(x)$. 
+
+$ulp(x)$ is defined as : 
+```math 
+ulp(x) = 2^{-p+1} 
+```
+
+For my `bfloat16` implementation with $p=8$ we thus have $ulp(x) = 2^{-7}$. 
+
+Note: The relative error calculation is as follows : 
+```math 
+
+error(x) = \frac{x_{model} - x_{hw}}{x_{model}}
+``` 
+
+## Round to zero, infinity condition 
+
+Let us consider the following calculation performed using round to zero using 
+`bfloat16_t` and, since `float32_t` has the same max representable magnitude, 
+also `float32_t. Both will produce the same result: 
+```
+3.389531e+38 + 1.329227e+36 = 3.389531e+38
+```
+On it's face this result looks wrong, but is actually absolutely correct
+when considering the expected behavior of floating point math!
+
+
+The IEEE-754 spec defines the overflow behavior per rounding mode. 
+When an overflow occurs, the result depends on the rounding direction attribute. 
+
+For round to zero, I cite : 
+> roundTowardZero, the result shall be the format’s floating-point number closest to and no greater in magnitude than the infinitely precise result.
+
+In plain english, for round to zero, the result will not be $\pm\infty$ but $\pm$ the largest representable number, 
+since $\infty$ has infinit magnitude. 
+
+Now, looking back at our example, here are the binary representation of our values : 
+```
+a + b = c
+a: 16'h7b80 | 16'b0_11110111_0000000 | 1.329227e+36
+b: 16'h7f7f | 16'b0_11111110_1111111 | 3.389531e+38
+c: 16'h7f7f | 16'b0_11111110_1111111 | 3.389531e+38
+```
+We can see that `3.389531e+38` is actually already the largest representable number so 
+for any $y, y /geq 0$ using `bfloat16_t$ then $y +3.389531e+38 = 3.389531e+38$.
+
+### Impact on NaN and inf
+
+This realization that operations will never overflow to $infty$ forces me to re-evaluate the
+need to add support for inf and NaN to the hardware, given these can now, never get
+produced as long as they are not feed as inputs. 
+
+The current plan is to finish a v1 with the support for inf and NaN and then remove them
+in a v2. 
