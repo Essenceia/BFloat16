@@ -6,10 +6,6 @@ ifndef debug
 debug :=
 endif
 
-ifndef wireshark
-wireshark:=
-endif
-
 # Enable waves by default
 ifndef wave
 wave:=1
