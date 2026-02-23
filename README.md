@@ -15,10 +15,41 @@ Supported operations :
 Usage assumptions:
 - inputs are bf16 
 - inputs are never subnormal
+- input are never NaN or $\pm\infty$
 
 Limitations implied by design choices: 
 - subnormals: all produced subnormals will be clamped to 0
 - no support for rounding modes appart from round to zero 
+
+## BFloat16 
+
+The bf16 is not defined as a IEEE-574 floating point format
+in the same sense as its contemporaries: the half-precision (f16), single percision (f32),
+and double precision (f64), are. 
+
+This lack of standardisation makes its implementation more flexible to the
+need of the underlying task. From a hardware designs perspective this also
+allows the tradeoffs between supporting certain features present in the IEEE-574
+floating point format, and their implementation costs, to be weighed. 
+
+BFloat16 uses the following layout : 
+```
+[ sign (1 bit) | exponent (8 bits) | significant (7 bits) ]
+```
+
+## Releases 
+
+`v1.0`: 
+- bfloat16 adder :
+    - dual path architecture
+    - no subnormal support
+    - nan/inf support
+
+`v2.0`:
+- bfloat16 adder :
+    - dual path architecture
+    - no subnormal support
+    - no nan/inf support
 
 
 ## Testing 
@@ -69,58 +100,26 @@ eg:
 make run_lzc SIM=1
 ```
 
-## BFloat16 
 
-The bf16 is not defined as a IEEE-574 floating point format
-in the same sense as its contemporaries: the half-precision (f16), single percision (f32),
-and double precision (f64), are. 
 
-This lack of standardisation makes its implementation more flexible to the
-need of the underlying task. From a hardware designs perspective this also
-allows the tradeoffs between supporting certain features present in the IEEE-574
-floating point format, and their implementation costs, to be weighed. 
+## Release v1.0 vs v2.0 NaN/inf support
 
-BFloat16 uses the following layout : 
-```
-[ sign (1 bit) | exponent (8 bits) | significant (7 bits) ]
-```
+Initially the desire was to NOT add support for NaN, 
+then due to a improper preconseption regarding the behavior of
+round to zero on overflows proper support for NaN and $/infty$
+was implemented and full tested. 
 
-### NaN handeling
+The belief that an operation overflow could produce an $\intfy$
+lead me to conclude that since, $\pm \infty$ are limits, and there is no mathematically correct
+solution $\pm \infty \times 0$ `NaN` support was necessary. 
 
-Initially the desire was to NOT add support for NaN, unfortunatly 
-given $\pm \infty$ is a limit there was no mathematically correct
-solution for the following operations : 
-```math 
+Given the validation was quite far along and some users may need NaN and $\infty$ support I 
+decided to keep them and package this as the `v1.0` release. 
 
-\pm \infty \times 0 = ?
-```
-
-As such, I needed to revise my stance on supporting `NaN`. 
-
-That said, this hardware will only produce `qNaN`, conformly with 
-the IEEE-754 spec for multiplications and additions. 
-
-#### Operations producting NaN
-
-##### Addition 
-
-![Addition](doc/qNaN_add.png)
-
-![Substraction](doc/qNaN_sub.png)
-
-##### Multiplication
-
-![Multiplication](doc/qNaN_mul.png)
-
-#### Prepresentation
-
-All `NaN`s will be quite, there will be no support for a 
-signaling flag since no operation produce an `sNaN`. 
-`qNaN` will be constantly outputted as : 
-`exponent = 0xFF, significant = 0x01`, but any incoming 
-`NaN` encoded as `exponent = 0xFF` and `signficant =/= 0x00` will
-be recognised as such. 
-
+During implementation I realized that according to the IEEE-574 prescription of round to zero's
+behavior on overflow, reaching $\infty$ wasn't possible. 
+Given my usecase doesn't require NaN or $\infty$ support and my aim to optimize for area and performance I 
+have decided to remove support and the associated hardware for NaN and $\infty$ in the `v2.0` release. 
 
 ## References 
 
