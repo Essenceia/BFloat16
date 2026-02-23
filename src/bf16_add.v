@@ -79,14 +79,14 @@ always @(*) begin
 		'd6: my_shift = {6'b0, y_nzero, my[M-1:5]};
 		'd7: my_shift = {7'b0, y_nzero, my[M-1]};
 		'd8: my_shift = {8'b0, y_nzero};
-		default: my_shift = {9'b0}; // 8+, sel is only on bottom 3 bits of exy_diff, else clamp to 0 
+		default: my_shift = {9'b0}; // 9+, full shift out due to insuficient precision p = 8 
 	endcase
 end
 
 // operation can be either positive or negative: m_r = m_x +/- m_y
 // since we won't be doing the common rouding post normalization to save on
 // the need to have a W+E wide adder, our addition will be done on p+1 bits
-// unlike the p bits commonly found in the litterature
+// unlike the p bits commonly found in the literature
 wire op_sub;
 wire [M+1:0] mr;
 wire [M+1:0] my_shift_neg_comp;
@@ -105,8 +105,8 @@ assign {my_shift_neg_carry_unused, my_shift_neg } = my_shift_neg_comp +
 assign {mr_carry, mr} = mx_expanded
 					  + my_shift_neg;
 
-// rounds to zero: clamps to largest finite number in case of overflow to +/-
-// inf
+// rounds to zero: clamps to largest finite number in case of overflow to
+// +/- inf
 logic rz_max; 
 assign rz_max = {{E-1{1'b1}}, 1'b0} == ex; 
 
@@ -117,7 +117,7 @@ assign rz_max = {{E-1{1'b1}}, 1'b0} == ex;
 logic [M-1:0] mr_norm;// removing hidden 1 and extra lsb
 logic [E-1:0] er_norm;
 /* verilator lint_off UNUSEDSIGNAL */
-logic         er_norm_carry; // TODO overflow identification ? 
+logic         er_norm_carry; // overflow will be prevented by rz_max logic
 /* verilator lint_on UNUSEDSIGNAL */
 
 // a little ugly but useing a case to give more flexibility for optimization
@@ -195,9 +195,7 @@ always @(*) begin
 		'd6: mz_cp_norm_lite = {mxy_cp_abs_diff[M-5:0], 6'b0}; 
 		'd7: mz_cp_norm_lite = {mxy_cp_abs_diff[M-6:0], 7'b0}; 
 		'd8: mz_cp_norm_lite = {1'b1, 8'b0}; //only 1 left 
-		default: mz_cp_norm_lite = {1'b1,{M+1{1'b0}}}; // full cancellation, nothing is left, made the same as the 8 case
-												   // could fuse 8 and default case to have mux sel be done
-												   // only on bottom 3 bits ?
+		default: mz_cp_norm_lite = {1'b1,{M+1{1'b0}}}; // full cancellation, nothing is left
 	endcase
 end
 
@@ -223,14 +221,13 @@ wire fp_sel;
 assign fp_sel = ~(~|exy_diff[E-1:1] & op_sub); //  exy_diff < 2 && cancellation 
 
 // special case
+// - 0 +/- 0, return +0
+// observation: when x is 0, then y is 0 since ex >= ey and we have no
+// subnormals
 wire sc_sel; // special case select
 wire [E-1:0] er_sc;
 wire [M-1:0] mr_sc; 
-// 0 +/- |i|, where |i| > 0 returns x
-// 0 +/- 0, return +0
-//
-// observation: when x is 0, then y is 0 since ex >= ey and we have no
-// subnormals
+
 assign sc_sel = ~x_nzero; 
 assign er_sc = {E{1'b0}};
 assign mr_sc = {M{1'b0}};
