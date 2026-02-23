@@ -14,7 +14,7 @@
 // DPI interface
 import "DPI-C" function void init_bf16(); 
 import "DPI-C" function shortint bf16_add(input shortint x, input shortint y);
-import "DPI-C" function shortint bf16_subnormal_to_zero(input shortint x); 
+import "DPI-C" function shortint bf16_remap_input(input shortint x); 
 import "DPI-C" function void bf16_pretty_print(input shortint x); 
 import "DPI-C" function void bf16_pretty_print_triple(input shortint x, input shortint y, input shortint z); 
 import "DPI-C" function shortint bf16_calculate_relative_error(input shortint x, input shortint y);
@@ -102,66 +102,6 @@ task test_zero();
 	$display("test_zero: PASS");
 endtask 
 
-// whatever the value sent next to a nan, the result if allways nan
-task test_nan();
-	logic nan_sign; 
-	logic [M-1:0] nan_mantissa;
-	
-	for(int i = 0; i < `ITER; i++) begin
-		/* verilator lint_off WIDTHTRUNC */
-		nan_sign = $urandom_range(1, 0);
-		nan_mantissa = $urandom_range($rtoi($pow(2,M)-1), 1); 
-		/* verilator lint_on WIDTHTRUNC */
-		`set_bf16(a, nan_sign, {E{1'b1}}, nan_mantissa);
-		for(int j=0; j < `ITER; j++) begin
-			`set_rand_bf16(b)
-			#1
-			`sva_check_bf16(nan, c, nan_sign, {E{1'b1}}, {M{1'b1}});
-				
-		end
-	end
-	// +nan - nan  = +/-nan
-	`set_bf16(a, 1'b0, 8'hFF, 7'h01);
-    `set_bf16(b, 1'b1, 8'hFF, 7'h03);
-	#1
-	`sva_check_bf16(diff_nan, c, 1'b1, 8'hFF, 7'hFF);	
-
-	$display("test_nan: PASS");
-endtask
-
-// test inf
-task test_inf();
-	logic inf_sign; 
-	
-	// + inf - inf  = -nan
-	`set_bf16(a, 1'b0, 8'hFF, 7'h00);
-    `set_bf16(b, 1'b1, 8'hFF, 7'h00);
-	#1
-	`sva_check_bf16(inf_nan, c, 1'b1, 8'hFF, 7'hFF);
-
-	// + inf + 0 = +inf
-	`set_bf16(a, 1'b0, 8'hFF, 7'h00);
-    `set_bf16(b, 1'b0, 8'h00, 7'h00);
-	#1
-	`sva_check_bf16(inf_plus_zero, c, 1'b0, 8'hFF, 7'h00);
-
-
-	// +/- inf + rand = inf
-	for(int i = 0; i < `ITER; i++) begin
-		/* verilator lint_off WIDTHTRUNC */
-		inf_sign = $urandom_range(1, 0);
-		/* verilator lint_on WIDTHTRUNC */
-		`set_bf16(a, inf_sign, {E{1'b1}}, 7'h00);
-		for(int j=0; j < `ITER; j++) begin
-			`set_rand_bf16(b)
-			#1
-			`sva_check_bf16(inf_rand, c, inf_sign, {E{1'b1}}, {M{1'b0}});
-				
-		end
-	end
-	$display("test_inf: PASS");
-endtask
-
 // DPI is verilator only 
 `ifdef VERILATOR
 task test_dpi();
@@ -192,8 +132,8 @@ task test_batch(shortint start_x, shortint start_y);
 	for(shortint i = start_x; i < 16'hffff; i++) begin
 		for(shortint j = (i == start_x)? start_y : 0; j < 16'hffff; j++) begin
 			// sanitize inputs
-			x = bf16_subnormal_to_zero(i); 
-			y = bf16_subnormal_to_zero(j);
+			x = bf16_remap_input(i); 
+			y = bf16_remap_input(j);
 		
 			r = bf16_add(x, y);
 			a = x; 
@@ -239,10 +179,6 @@ initial begin
 
 	#1
 	test_zero();
-	#1 
-	test_nan();
-	#1
-	test_inf();
 
 `ifdef VERILATOR
 	init_bf16();

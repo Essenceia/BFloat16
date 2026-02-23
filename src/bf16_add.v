@@ -57,21 +57,8 @@ assign xy_eq  = mab_eq & exy_eq;
 
 // identify corner cases : 
 // +/- zero 
-// +/- infinity
-// NaN 
 wire x_nzero, y_nzero;
-wire ex_max, ey_max;
-wire mx_nzero, my_nzero; 
-wire x_inf, y_inf;
-wire x_nan, y_nan; 
-
 assign {x_nzero, y_nzero }  = {|ex, |ey};
-// differentiating int/NaN
-assign {ex_max, ey_max}     = {&ex, &ey};
-assign {mx_nzero, my_nzero} = {|mx, |my};
-
-assign {x_inf, y_inf} = {ex_max & ~mx_nzero, ey_max & ~my_nzero}; 
-assign {x_nan, y_nan} = {ex_max &  mx_nzero, ey_max &  my_nzero};
 
 /* --------
    far path  
@@ -239,30 +226,17 @@ assign fp_sel = ~(~|exy_diff[E-1:1] & op_sub); //  exy_diff < 2 && cancellation
 wire sc_sel; // special case select
 wire [E-1:0] er_sc;
 wire [M-1:0] mr_sc; 
-wire       r_zero, r_nan, r_inf;
 // 0 +/- |i|, where |i| > 0 returns x
-// 0 +/- 0, return 0
-// inf +/- |i|. where |i| =/= inf returns inf
-// inf +/- inf, returns nan
-// nan +/- i, returns nan 
+// 0 +/- 0, return +0
 //
 // observation: when x is 0, then y is 0 since ex >= ey and we have no
 // subnormals
-
-assign r_zero = ~x_nzero;
-assign r_nan = (x_nan | y_nan) | (x_inf & y_inf & op_sub);
-assign r_inf = x_inf | y_inf; // nan takes precedance over inf 
-assign mr_sc = {M{r_nan}};
-
-assign er_sc = {E{~r_zero}};
-assign sc_sel = r_zero | r_nan | r_inf; 
-
-// special sign case inf - inf = -nan, breaks the equality convention
-wire sc_sign_sel;
-assign sc_sign_sel = (x_inf & y_inf) & op_sub; 
+assign sc_sel = ~x_nzero; 
+assign er_sc = {E{1'b0}};
+assign mr_sc = {M{1'b0}};
 
 // return
-assign s_o = sc_sign_sel ? 1'b1 : fp_sel ? sx : (sx ^ mxy_cp_diff_carry) & ~xy_eq;// sign is allways + for -N + N/ N - N, convention to help equality comparison
+assign s_o = fp_sel ? sx : (sx ^ mxy_cp_diff_carry) & ~xy_eq;// sign is allways + for -N + N/ N - N, convention to help equality comparison
 assign e_o = sc_sel ? er_sc : fp_sel ? er_norm : ez_cp_norm;
 assign m_o = sc_sel ? mr_sc : fp_sel ? mr_norm: mz_cp_norm;
 
@@ -273,10 +247,9 @@ always @(*) begin
 	sva_xcheck_i: assert( ~$isunknown({sa_i, ea_i, ma_i, sb_i, eb_i, mb_i});
 	sva_xcheck_o: assert( ~$isunknown({s_o, e_o, m_o});
 
-	// assertions 
+	// assertions
+	// validate swap working, covers 0 assumptions (x == 0 => y == 0) 
 	sva_swap_geq_exp: assert(ex >= ey);
-
-	sva_sc_check_no_overlap: $onehot0({r_zero, r_nan});
 end
 
 `endif
