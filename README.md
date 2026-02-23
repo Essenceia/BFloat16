@@ -75,8 +75,6 @@ make run_bf16_add
 Waves are dumped by default, to disable the waves undefine the `wave` argument 
 when building the testbench. This is recommended during batch testing as 
 the full waves can occupy upwards of 1.6TB. 
-
-eg: 
 ```
 make run_bf16_add wave=
 ```
@@ -85,8 +83,6 @@ make run_bf16_add wave=
 
 Verbose debug logs are disabled by default, invoking make with the `debug` argument 
 enables it.
-
-eg:
 ```
 make run_bf16_add debug=1
 ```
@@ -94,8 +90,6 @@ make run_bf16_add debug=1
 #### Simulator 
 
 To run the testbench with icarus verilog, invoke the testbench with the `SIM=1` argument
-
-eg:
 ```
 make run_lzc SIM=1
 ```
@@ -117,10 +111,10 @@ make run
 
 Initially the desire was to NOT add support for NaN, 
 then due to an improper preconcived understanding in regards to the behavior of
-round towards zero on overflows, proper support for NaN and $/infty$
+round towards zero on overflows, proper support for NaN and $\infty$
 was implemented and full tested. 
 
-The belief: that an operation overflow could produce an $\intfy$,
+The belief: that an operation overflow could produce an $\infty,
 lead me to conclude that since, $\pm \infty$ are limits, and there is no mathematically correct
 solution $\pm \infty \times 0$ `NaN` support was necessary. 
 
