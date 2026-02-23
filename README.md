@@ -20,6 +20,55 @@ Limitations implied by design choices:
 - subnormals: all produced subnormals will be clamped to 0
 - no support for rounding modes appart from round to zero 
 
+
+## Testing 
+
+This codebase supports using both the `verilator`(default) and `icarus verilog`
+simulators, though the batch testing producing a full coverage of the 
+input space is only available with the faster `verilator` simulator. 
+
+Leading Zero Count testbench : 
+```
+make run_lzc
+```
+
+BFloat16 adder testbench (including batch testing): 
+```
+make run_bf16_add
+```
+
+### Options
+
+#### Waves
+
+Waves are dumped by default, to dissable the waves undefine the `wave` argument 
+when building the testbench. This is recomended during batch testing as 
+the full waves can occupy upwards of 1.6TB. 
+
+eg: 
+```
+make run_bf16_add wave=
+```
+
+#### Verbose logs
+
+Verbose debug logs are dissabled by default, invoking make with the `debug` argument 
+enables it.
+
+eg:
+```
+make run_bf16_add debug=1
+```
+
+#### Simulator 
+
+To run the testbench with icarus verilog, invoke the testbench with the `SIM=1` argument
+
+eg:
+```
+make run_lzc SIM=1
+```
+
 ## BFloat16 
 
 The bf16 is not defined as a IEEE-574 floating point format
