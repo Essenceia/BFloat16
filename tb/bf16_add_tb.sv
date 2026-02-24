@@ -118,7 +118,7 @@ task test_batch(shortint start_x, shortint start_y);
 			pass = bf16_calculate_relative_error(r, got);	
 			if (pass == 0) begin
 				if (got != r) begin // pass will missfire on corner cases due to float unordering, kepping this behavior to not miss corner cases
-					$display("Possible error detected at iteration %d (missfire on NaN sign)", cnt);
+					$display("Error detected at iteration %d", cnt);
 					bf16_pretty_print_triple(i, y, r);
 					`sva_check_bf16_ignore_nan_sign(batch_test, c, c[15], c[14:7], c[6:0]);
 				end
