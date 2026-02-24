@@ -1,11 +1,12 @@
 # BFloat16 hardware implementation 
 
-Home to the shared bf16 hardware implementation and verification. 
-These modules are designed with the objective on being included in 
-future ASIC tapeouts, as such, area is the primary concerned
-followed by performance. Power is not a design prerogative. 
-In order to save on logic cost, this hardware doesn't support subnormals, 
-uses rounded towards zero allowing it to also drop inf and NaN support. 
+High performance bfloat16 adder and multiplier hardware implementation and verification.
+
+These modules are designed to be included in 
+future ASIC tapeouts, performance and area is the primary concerneds, and power is not a design prerogative. 
+
+In order to increase performance and save on logic cost, this hardware doesn't support subnormals, 
+uses only rounded towards zero allowing it to also drop inf and NaN support. 
 
 This implementation has **100% test coverage** of the valid input space. 
 
