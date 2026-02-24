@@ -160,13 +160,15 @@ endif
 # Dependencies for each testbench
 lzc_deps += $(TB_DIR)/lzc_tb.sv $(SRC_DIR)/lzc.v
 bf16_add_deps += $(TB_DIR)/tb_utils.sv $(TB_DIR)/bf16_add_tb.sv $(SRC_DIR)/lzc.v $(SRC_DIR)/bf16_add.v
+bf16_mul_deps += $(TB_DIR)/tb_utils.sv $(TB_DIR)/bf16_mul_tb.sv $(SRC_DIR)/bf16_mul.v
 
-tbs := lzc bf16_add
+tbs := lzc bf16_add bf16_mul
 
 # The list of testbenches.
 ifeq ($(SIM),I)
 else
 bf16_add_deps += $(DPI_DIR)/Vbf16_add_tb__Dpi.cpp  
+bf16_mul_deps += $(DPI_DIR)/Vbf16_mul_tb__Dpi.cpp  
 endif 
 
 # Standard run recipe to build a given testbench
