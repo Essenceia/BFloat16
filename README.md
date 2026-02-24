@@ -131,3 +131,14 @@ decided to remove support and the associated hardware for NaN and $\infty$ in th
 
 - IEEE-754, IEEE Standard for Floating-Point Arithmetic
 - Handbook of Floating-Point Arithmetic - Jean-Michel Muller • Nicolas Brunie, Florent de Dinechin, Claude-Pierre Jeannerod, Mioara Joldes, Vincent Lefèvre, Guillaume Melquiond, Nathalie Revol, Serge Torres
+
+## License
+
+ Copyright (c) 2026, Julia Desmazes. All rights reserved.
+
+This work is licensed under the Creative Commons Attribution-NonCommercial
+4.0 International License. 
+
+This code is provided "as is" without any express or implied warranties.
+
+

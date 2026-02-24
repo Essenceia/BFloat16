@@ -1,3 +1,11 @@
+/* Copyright (c) 2026, Julia Desmazes. All rights reserved.
+
+  This work is licensed under the Creative Commons Attribution-NonCommercial
+  4.0 International License. 
+
+  This code is provided "as is" without any express or implied warranties.
+*/
+ 
 /* Tree Leading Zero Count 
  * 
  * This implementation works with the assumption that the 
@@ -5,6 +13,7 @@
  *
  * This monstrosity is getting its own tb 
  */ 
+
 /* First level of the tree */
 module lzc_leaf (
 	input wire [1:0] pair_i,
