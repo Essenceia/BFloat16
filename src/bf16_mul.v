@@ -52,11 +52,16 @@ assign ab_zero = ~a_nzero | ~b_nzero;
 // detecting and correcting for overflow before normalization
 wire eab_diff_overflow, eab_diff_underflow; 
 wire eab_diff_min1_overflow, eab_diff_min1_underflow; 
+wire eab_diff_zero, eab_diff_min1_zero; 
 
 assign eab_diff_overflow = eab_diff[E] & ~eab_diff_carry;
 assign eab_diff_underflow = eab_diff_carry | ab_zero;
 assign eab_diff_min1_overflow = eab_diff_min1[E] & ~eab_diff_min1_carry;
 assign eab_diff_min1_underflow = eab_diff_min1_carry | ab_zero;
+
+// test when diff results in zero, before diff correction for better perf 
+assign eab_diff_zero = ~|eab_diff[E:0] | eab_diff_underflow;
+assign eab_diff_min1_zero = ~|eab_diff_min1[E:0] | eab_diff_min1_underflow;
 
 wire [E-1:0] eab_diff_cor, eab_diff_min1_cor;
 // on overflow round toward zero clamps at largest finite floating point number e = 8'FE
@@ -92,12 +97,14 @@ wire         z_zero; // underflow
 wire         z_max; // overflow
 wire [M-1:0] mz_norm_lite;
 wire [M-1:0] mz_norm; 
+wire         mz_msb; 
 
-assign ez_norm = mz[P2-1]? eab_diff_min1_cor: eab_diff_cor;
-assign z_zero  = mz[P2-1]? eab_diff_min1_underflow: eab_diff_underflow;
-assign z_max   = mz[P2-1]? eab_diff_min1_overflow: eab_diff_overflow;
+assign mz_msb  = mz[P2-1];
+assign ez_norm = mz_msb? eab_diff_min1_cor: eab_diff_cor;
+assign z_zero  = mz_msb? eab_diff_min1_zero: eab_diff_zero;
+assign z_max   = mz_msb? eab_diff_min1_overflow: eab_diff_overflow;
 
-assign mz_norm_lite = mz[P2-1] ? mz[P2-2-:M] : mz[P2-1-:M];
+assign mz_norm_lite = mz_msb ? mz[P2-2-:M] : mz[P2-3-:M];
 assign mz_norm = mz_norm_lite & {M{~z_zero}} | {M{z_max}};
 
 /* result */ 
