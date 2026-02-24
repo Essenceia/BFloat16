@@ -8,65 +8,9 @@
 #include "Vbf16_add_tb__Dpi.h"
 #include "Vbf16_add_tb.h"
 
-#include <stdfloat> 
-#include <cstring> 
-#include <cmath> 
-#include <iostream> 
-#include <bitset> 
-
-#include <cfenv>
-#include <iomanip>
-
-#define HW_NAN 0x7FFF
-
-#define BF16_DEFAULT_VAL 0e0bf16
-
-#define IS_SUBNORMAL(x) (!(isnormal(x) | isnan(x) | isinf(x) | (x == 0e0bf16)))
-
-using namespace std; 
-
-typedef struct {
-	uint8_t mantissa: 7;
-	uint8_t exponent: 8;
-	uint8_t sign : 1; 
-} __attribute__((packed)) bf16_u; 
-
-// set rounding mode to RZ
-void init_bf16(){
-		fesetround(FE_TOWARDZERO);
-}
-
-bfloat16_t _subnormal_to_zero(bfloat16_t x){
-	if IS_SUBNORMAL(x) {
-		bool pos = !signbit(x);
-#ifdef DEBUG
-		cout << "rounding subnormal to "<< (pos?"+":"-") <<"0.0 from " << scientific << x << " [normal:"<<
-		isnormal(x) << ", nan:"<< isnan(x) << ", inf:"<< isinf(x) << "]" << endl;
-#endif
-		if (pos) x = 0e0bf16;
-		else x = -0e0bf16; // because -0 is a thing I want to handle
-	}
-	return x;
-};
-// format expected input, remove : 
-// inf
-// nan
-// subnormals
-short bf16_remap_input(short x){
-	bfloat16_t f; 
-	memcpy(&f, &x, sizeof(bfloat16_t));
-	f = _subnormal_to_zero(f);
-	if (isnan(f) || isinf(f)) f = BF16_DEFAULT_VAL;
-	memcpy(&x, &f, sizeof(short)); 
-	return x; 
-}
-
-bfloat16_t expected_hw_result(bfloat16_t x){
-	x = _subnormal_to_zero(x);
-	assert(!(isnan(x) || isinf(x)));
-	return x;
-};
-
+// include litterally includes the raw code, preventing
+// code duplication between the add and mul tb's
+#include "dpi_custom_utils.cpp"
 
 short bf16_add(short x, short y){
 	static_assert(sizeof(x) == sizeof(bfloat16_t));
@@ -89,56 +33,3 @@ short bf16_add(short x, short y){
 	return r;
 }
 
-void bf16_pretty_print(short x){
-	bfloat16_t f; 
-	bf16_u u;
-	memcpy(&f, &x, sizeof(bfloat16_t));
-	static_assert(sizeof(bf16_u) == sizeof(bfloat16_t));
-	memcpy(&u, &x, sizeof(bf16_u));
-
-	cout << "16'h" << hex << setfill('0') << setw(4) << x << 
-	" | 16'b"<<  bitset<1>{u.sign} << "_" << bitset<8>{u.exponent} << "_" << bitset<7>{u.mantissa}
-	<< " | " << scientific << f << endl; 
-}
-// reduce the call overhead by having a triple print
-void bf16_pretty_print_triple(short x, short y, short z){
-	bf16_pretty_print(x);
-	bf16_pretty_print(y);
-	bf16_pretty_print(z);
-	cout << endl;
-}
-
-
-// calculate the relative error between the ideal c++23 bf16 calculation 
-// and the hardware given we are working on an different precision
-// Error will allways be triggered on zero/inf/nan, this is expected behavior
-short bf16_calculate_relative_error(short exp, short got){
-	float64_t ulp, error;
-	bfloat16_t ebf, gbf;
-	float64_t ef64, gf64; 
-	short pass; 
-	
-	ulp = pow(2.0, -7.0);
-
-	memcpy(&ebf, &exp, sizeof(bfloat16_t)); 
-	memcpy(&gbf, &got, sizeof(bfloat16_t)); 
-
-	// convert to f64, we are going to be needing the extra precision	
-	ef64 = ebf; 
-	gf64 = gbf;
-
-	error = (gf64 - ef64)/ef64;
-
-	pass = (error <= ulp)? 1 : 0;
-
-#ifdef DEBUG
-	if (pass == 0){
-		cout << "got :"; 
-		bf16_pretty_print(got);
-		cout << "exp :"; 
-		bf16_pretty_print(exp);
-		cout << " relative error between expected " << scientific << ef64 << " and got " << scientific << gf64 << " is " << scientific << error << " ulp " << ulp << endl;
-	}
-#endif
-	return pass; 
-}

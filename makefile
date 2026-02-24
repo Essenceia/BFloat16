@@ -166,7 +166,7 @@ tbs := lzc bf16_add
 # The list of testbenches.
 ifeq ($(SIM),I)
 else
-bf16_add_deps += $(DPI_DIR)/Vbf16_add_tb__Dpi.cpp 
+bf16_add_deps += $(DPI_DIR)/Vbf16_add_tb__Dpi.cpp  
 endif 
 
 # Standard run recipe to build a given testbench
