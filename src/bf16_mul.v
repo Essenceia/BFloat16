@@ -38,8 +38,8 @@ assign {eab_diff_min1_carry, eab_diff_min1} = eab - B_MIN_1;
 
 // detect under/overflow, mul MSB is on critical path, so 
 // detecting and correcting for overflow before normalization
-wire eab_diff_overflow, eab_diff_uderflow; 
-wire eab_diff_min1_overflow, eab_diff_min1_uderflow; 
+wire eab_diff_overflow, eab_diff_underflow; 
+wire eab_diff_min1_overflow, eab_diff_min1_underflow; 
 
 assign eab_diff_overflow = eab_diff[E];
 assign eab_diff_underflow = eab_diff_carry;
@@ -53,12 +53,14 @@ wire [E-1:0] eab_diff_cor, eab_diff_min1_cor;
 assign eab_diff_cor = {E{~eab_diff_underflow}} 
 					& {{{E-1{eab_diff_overflow}} | eab_diff[E-1:1]}, ~eab_diff_overflow & eab_diff[0]};
 assign eab_diff_min1_cor = {E{~eab_diff_min1_underflow}} 
-					     & {{{E-1{eab_diff_min1_overflow}} | eab_diff_min1[E-1:1]}, ~eab_diff_min1_overflow & eab_min1_diff[0]};
+					     & {{{E-1{eab_diff_min1_overflow}} | eab_diff_min1[E-1:1]}, ~eab_diff_min1_overflow & eab_diff_min1[0]};
 
 /* significant multiplication */
+localparam int P2 = 2*(M+1); // double the size of the precision p=m+1 (hidden bit) 
+ 
 wire [M:0] ma, mb; // include hidden bit
 wire       a_nzero, b_nzero; 
-wire [2*M:0] mz; // ma*mb =mz
+wire [P2-1:0] mz; // ma*mb =mz
 
 // don't need to check mantissa since we don't support subnormal numbers
 assign {a_nzero, b_nzero} = {|ea_i, |eb_i}; 
@@ -79,14 +81,14 @@ wire [E-1:0] ez_norm;
 wire         z_zero; // underflow
 wire         z_max; // overflow
 wire [M-1:0] mz_norm_lite;
-wire [M-1:0] mz_lite; 
+wire [M-1:0] mz_norm; 
 
-assign ez_norm = mz[M*2-1]? eab_diff_min1_cor: eab_diff_cor;
-assign z_zero  = mz[M*2-1]? eab_diff_min1_underflow: eab_diff_underflow;
-assign z_max   = mz[M*2-1]? eab_diff_min1_overflow: eab_diff_overflow;
+assign ez_norm = mz[P2-1]? eab_diff_min1_cor: eab_diff_cor;
+assign z_zero  = mz[P2-1]? eab_diff_min1_underflow: eab_diff_underflow;
+assign z_max   = mz[P2-1]? eab_diff_min1_overflow: eab_diff_overflow;
 
-assign mz_norm_lite = mz[M*2-1] ? mz[M*2-2:M-1] : mz[M*2-1:M];
-assign mz_norm = mz & {M{~z_zero}} | {M{z_max}};
+assign mz_norm_lite = mz[P2-1] ? mz[P2-2-:M] : mz[P2-1-:M];
+assign mz_norm = mz_norm_lite & {M{~z_zero}} | {M{z_max}};
 
 /* result */ 
 assign s_o = sa_i ^ sb_i; 
