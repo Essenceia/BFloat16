@@ -41,18 +41,9 @@ BFloat16 uses the following layout :
 
 ## Releases 
 
-`v1.0`: 
-- bfloat16 adder :
-    - dual path architecture
-    - no subnormal support
-    - nan/inf support
+`v1.0` bfloat16 adder: dual path architecture, no subnormal support, nan/inf support
 
-`v2.0`:
-- bfloat16 adder :
-    - dual path architecture
-    - no subnormal support
-    - no nan/inf support
-
+`v2.0`: bfloat16 adder: dual path architecture, no subnormal support, no nan/inf support
 
 ## Testing 
 
