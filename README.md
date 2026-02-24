@@ -136,11 +136,5 @@ decided to remove support and the associated hardware for NaN and $\infty$ in th
 
 ## License
 
- Copyright (c) 2026, Julia Desmazes. All rights reserved.
-
-This work is licensed under the Creative Commons Attribution-NonCommercial
-4.0 International License. 
-
-This code is provided "as is" without any express or implied warranties.
-
-
+This code is licensed under  Creative Commons Attribution-NonCommercial
+4.0 International License, all rights belong to Julia Desmazes.
