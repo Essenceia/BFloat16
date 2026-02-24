@@ -51,26 +51,31 @@ assign ab_zero = ~a_nzero | ~b_nzero;
 // detect under/overflow, mul MSB is on critical path, so 
 // detecting and correcting for overflow before normalization
 wire eab_diff_overflow, eab_diff_underflow; 
-wire eab_diff_min1_overflow, eab_diff_min1_underflow; 
+wire eab_diff_min1_overflow, eab_diff_min1_underflow;
+wire eab_diff_min1_clamp_max, eab_diff_clamp_max;
 wire eab_diff_zero, eab_diff_min1_zero; 
 
-assign eab_diff_overflow = eab_diff[E] & ~eab_diff_carry;
-assign eab_diff_underflow = eab_diff_carry | ab_zero;
+assign eab_diff_overflow      = eab_diff[E] & ~eab_diff_carry;
 assign eab_diff_min1_overflow = eab_diff_min1[E] & ~eab_diff_min1_carry;
+assign eab_diff_underflow = eab_diff_carry | ab_zero;
 assign eab_diff_min1_underflow = eab_diff_min1_carry | ab_zero;
 
 // test when diff results in zero, before diff correction for better perf 
 assign eab_diff_zero = ~|eab_diff[E:0] | eab_diff_underflow;
 assign eab_diff_min1_zero = ~|eab_diff_min1[E:0] | eab_diff_min1_underflow;
 
+// test when exponent has reached max, revent it from reaching inf
+assign eab_diff_min1_clamp_max = &eab_diff_min1[E-1:1];
+assign eab_diff_clamp_max = &eab_diff[E-1:1];
+
 wire [E-1:0] eab_diff_cor, eab_diff_min1_cor;
 // on overflow round toward zero clamps at largest finite floating point number e = 8'FE
 // using consecutive masking logic to save on a mux being mistakenly infered, exploiting the
 // fact overflow and underflow are exclusive 
 assign eab_diff_cor = {E{~eab_diff_underflow}} 
-					& {{{E-1{eab_diff_overflow}} | eab_diff[E-1:1]}, ~eab_diff_overflow & eab_diff[0]};
+					& {{{E-1{eab_diff_overflow | eab_diff_clamp_max}} | eab_diff[E-1:1]}, ~(eab_diff_overflow | eab_diff_clamp_max) & eab_diff[0]};
 assign eab_diff_min1_cor = {E{~eab_diff_min1_underflow}} 
-					     & {{{E-1{eab_diff_min1_overflow}} | eab_diff_min1[E-1:1]}, ~eab_diff_min1_overflow & eab_diff_min1[0]};
+					     & {{{E-1{eab_diff_min1_overflow | eab_diff_min1_clamp_max}} | eab_diff_min1[E-1:1]}, ~(eab_diff_min1_overflow | eab_diff_min1_clamp_max) & eab_diff_min1[0]};
 
 /* significant multiplication */
 localparam int P2 = 2*(M+1); // double the size of the precision p=m+1 (hidden bit) 
