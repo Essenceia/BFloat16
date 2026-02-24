@@ -116,18 +116,18 @@ then due to an improper preconcived understanding in regards to the behavior of
 round towards zero on overflows, proper support for NaN and $\infty$
 was implemented and full tested. 
 
-The belief: that an operation overflow could produce an $\infty,
-lead me to conclude that since, $\pm \infty$ are limits, and there is no mathematically correct
-solution $\pm \infty \times 0$ `NaN` support was necessary. 
+This belief was that an operations overflow could produce an $\infty$,
+lead to conclude that since, $\pm \infty$ are limits, and there is no mathematically correct
+solution $\pm \infty \times 0$ then `NaN` support was necessary. 
 
-Given the validation was far enough along and some users may need NaN and $\infty$ support I 
-decided to keep them and package this as the `v1.0` release. 
-
-Once I realized that according to the IEEE-574 prescription of round towards zero's
+But, once I realized that according to the IEEE-574 prescription of round towards zero's
 behavior on overflow implied reaching $\infty$ was impossible, it became possible to 
 remove them. 
 Given my usecase doesn't require NaN or $\infty$ support and my aim to optimize for area and performance I 
 decided to remove support and the associated hardware for NaN and $\infty$ in the `v2.0` release. 
+
+Given the validation was far enough along and some users may need NaN and $\infty$ support I 
+decided finish testing and keep them, then package this as the `v1.0` release. 
 
 ## References 
 
