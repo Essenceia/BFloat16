@@ -191,6 +191,12 @@ $(eval $(foreach x,$(tbs),$(call run_recipe,$x)))
 # Generate build recipes for each testbench.
 $(eval $(foreach x,$(tbs),$(call build_recipe,$x)))
 
+# build and run full test suite
+test: 
+	run_lzc
+	run_bf16_add
+	run_bf16_mul
+
 # Cleanup
 clean:
 	rm -f vgcore.* vgd.log*

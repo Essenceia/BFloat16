@@ -60,6 +60,11 @@ This codebase supports using both the `verilator`(default) and `icarus verilog`
 simulators, though the batch testing producing a full coverage of the 
 input space is only available with the faster `verilator` simulator. 
 
+Run all testbenches, including batch testing (recomend not dumping waves to not nuke your disk): 
+```
+make test wave=
+```
+
 Leading Zero Count testbench : 
 ```
 make run_lzc
@@ -68,6 +73,11 @@ make run_lzc
 BFloat16 adder testbench (including batch testing): 
 ```
 make run_bf16_add
+```
+
+BFloat16 multiplier testbench (including batch testing):
+```
+make run_bf16_mul
 ```
 
 ### Options
