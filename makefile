@@ -81,11 +81,15 @@ endif
 ########
 
 entry_deps := $(wildcard $(SRC_DIR)/*.v) $(wilcard $(SRC_DIR)/*.sv)
+mul_deps := $(SRC_DIR)/bf16_mul.v $(SRC_DIR)/booth_unsigned_mul.v
 
 $(info Top set to: $(TOP))
 
 lint: $(entry_deps)
 	$(call LINT,$^,$(TOP))
+
+lint_mul: $(mul_deps)
+	$(call LINT,$^,bf16_mul)
 
 ###############
 # Build flags #

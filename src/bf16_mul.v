@@ -43,8 +43,8 @@ wire eab_diff_min1_overflow, eab_diff_min1_uderflow;
 
 assign eab_diff_overflow = eab_diff[E];
 assign eab_diff_underflow = eab_diff_carry;
-assign eab_diff_min1_overflow = eab_diff_min1_b[E];
-assign eab_diff_min1_underflow = eab_diff_min1_b_carry;
+assign eab_diff_min1_overflow = eab_diff_min1[E];
+assign eab_diff_min1_underflow = eab_diff_min1_carry;
 
 wire [E-1:0] eab_diff_cor, eab_diff_min1_cor;
 // on overflow round toward zero clamps at largest finite floating point number e = 8'FE
@@ -53,7 +53,7 @@ wire [E-1:0] eab_diff_cor, eab_diff_min1_cor;
 assign eab_diff_cor = {E{~eab_diff_underflow}} 
 					& {{{E-1{eab_diff_overflow}} | eab_diff[E-1:1]}, ~eab_diff_overflow & eab_diff[0]};
 assign eab_diff_min1_cor = {E{~eab_diff_min1_underflow}} 
-					     & {{{E-1{eab_diff_min1_overflow}} | eab_min1_diff[E-1:1]}, ~eab_diff_min1_overflow & eab_min1_diff[0]};
+					     & {{{E-1{eab_diff_min1_overflow}} | eab_diff_min1[E-1:1]}, ~eab_diff_min1_overflow & eab_min1_diff[0]};
 
 /* significant multiplication */
 wire [M:0] ma, mb; // include hidden bit
@@ -68,7 +68,7 @@ assign {ma, mb} = {{a_nzero, ma_i}, {b_nzero, mb_i}}; // hidden bit is 0 on 0.0
 // optimized for signed numbers, these are unsigned.
 // will be using the yosys's abc synthesized radix4 booth multiplier
 // for unsigned
-booth_unsigned_mul #(.W(M+1)) m_mul
+booth_unsigned_mul #(.W(M+1)) m_mul(
 	.x_i(ma),
 	.y_i(mb),
 	.z_o(mz)
@@ -106,5 +106,4 @@ always @(*) begin
 end
 
 `endif
-endmodule
 endmodule
