@@ -24,11 +24,6 @@ import "DPI-C" function shortint bf16_calculate_relative_error(input shortint x,
 	$error("sva assert 'name' failed: \nexpected b%b\nreceived b%b\n", exp, got)
 
 `ifdef VERILATOR
-`define sva_check_bf16_ignore_nan_sign(sva_name, v, sign, exp,  man) \
-	sva_check_bf16_sign_``sva_name    : assert((&v``_e & | v``_m) | (v``_s == sign)) else `_sva_error_msg(sva_check_bf16_sign_``sva_name,sign, (v``_s)); \
-	sva_check_bf16_exponent_``sva_name: assert(v``_e == exp)  else `_sva_error_msg(sva_check_bf16_exponent_``sva_name, exp,  (v``_e)); \
-	sva_check_bf16_mantissa_``sva_name: assert(v``_m == man)  else `_sva_error_msg(sva_check_bf16_mantissa_``sva_name, man,  (v``_m));
-	
 `define sva_check_bf16(sva_name, v, sign, exp,  man) \
 	sva_check_bf16_sign_``sva_name    : assert(v``_s == sign) else `_sva_error_msg(sva_check_bf16_sign_``sva_name,sign, (v``_s)); \
 	sva_check_bf16_exponent_``sva_name: assert(v``_e == exp)  else `_sva_error_msg(sva_check_bf16_exponent_``sva_name, exp,  (v``_e)); \
