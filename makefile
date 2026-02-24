@@ -159,7 +159,7 @@ endif
 
 # Dependencies for each testbench
 lzc_deps += $(TB_DIR)/lzc_tb.sv $(SRC_DIR)/lzc.v
-bf16_add_deps += $(TB_DIR)/bf16_add_tb.sv $(SRC_DIR)/lzc.v $(SRC_DIR)/bf16_add.v
+bf16_add_deps += $(TB_DIR)/tb_utils.sv $(TB_DIR)/bf16_add_tb.sv $(SRC_DIR)/lzc.v $(SRC_DIR)/bf16_add.v
 
 tbs := lzc bf16_add
 
