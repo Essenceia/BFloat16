@@ -47,10 +47,13 @@ assign eab_diff_min1_overflow = eab_diff_min1_b[E];
 assign eab_diff_min1_underflow = eab_diff_min1_b_carry;
 
 wire [E-1:0] eab_diff_cor, eab_diff_min1_cor;
-assign eab_diff_cor = {E{~eab_diff_underflow}} & ( {E{eab_diff_overflow ? 
-
-// normalize
-wire [E-1:0] mz_norm; 
+// on overflow round toward zero clamps at largest finite floating point number e = 8'FE
+// using consecutive masking logic to save on a mux being mistakenly infered, exploiting the
+// fact overflow and underflow are exclusive 
+assign eab_diff_cor = {E{~eab_diff_underflow}} 
+					& {{{E-1{eab_diff_overflow}} | eab_diff[E-1:1]}, ~eab_diff_overflow & eab_diff[0]};
+assign eab_diff_min1_cor = {E{~eab_diff_min1_underflow}} 
+					     & {{{E-1{eab_diff_min1_overflow}} | eab_min1_diff[E-1:1]}, ~eab_diff_min1_overflow & eab_min1_diff[0]};
 
 /* significant multiplication */
 wire [M:0] ma, mb; // include hidden bit
@@ -61,7 +64,7 @@ wire [2*M:0] mz; // ma*mb =mz
 assign {a_nzero, b_nzero} = {|ea_i, |eb_i}; 
 assign {ma, mb} = {{a_nzero, ma_i}, {b_nzero, mb_i}}; // hidden bit is 0 on 0.0
 
-// can't reuse 8 bit booth radix-4 multiplier because it was 
+// can't reuse existing 8 bit booth radix-4 multiplier because it was 
 // optimized for signed numbers, these are unsigned.
 // will be using the yosys's abc synthesized radix4 booth multiplier
 // for unsigned
@@ -72,11 +75,23 @@ booth_unsigned_mul #(.W(M+1)) m_mul
 ); 
 
 // normalize 
-wire [M-1:0] mz_norm;
-assign mz_norm = mz[M*2-1] ? mz[M*2-2:M-1] : mz[M*2-1:M];
+wire [E-1:0] ez_norm;
+wire         z_zero; // underflow
+wire         z_max; // overflow
+wire [M-1:0] mz_norm_lite;
+wire [M-1:0] mz_lite; 
+
+assign ez_norm = mz[M*2-1]? eab_diff_min1_cor: eab_diff_cor;
+assign z_zero  = mz[M*2-1]? eab_diff_min1_underflow: eab_diff_underflow;
+assign z_max   = mz[M*2-1]? eab_diff_min1_overflow: eab_diff_overflow;
+
+assign mz_norm_lite = mz[M*2-1] ? mz[M*2-2:M-1] : mz[M*2-1:M];
+assign mz_norm = mz & {M{~z_zero}} | {M{z_max}};
 
 /* result */ 
 assign s_o = sa_i ^ sb_i; 
+assign e_o = ez_norm;
+assign m_o = mz_norm; 
 
 `ifdef FORMAL
 
