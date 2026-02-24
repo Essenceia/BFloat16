@@ -91,9 +91,9 @@ make run_bf16_add debug=1
 
 #### Simulator 
 
-To run the testbench with icarus verilog, invoke the testbench with the `SIM=1` argument
+To run the testbench with icarus verilog, invoke the testbench with the `SIM=I` argument
 ```
-make run_lzc SIM=1
+make run_lzc SIM=I
 ```
 
 
