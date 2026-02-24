@@ -10,7 +10,7 @@ subnormals so far as to round them to zero.
 Supported operations : 
 - addition/subtration
 - multiplication
-- round to zero rouding
+- round towards zero roudding
 
 Usage assumptions:
 - inputs are bf16 
@@ -19,7 +19,7 @@ Usage assumptions:
 
 Limitations implied by design choices: 
 - subnormals: all produced subnormals will be clamped to 0
-- no support for rounding modes appart from round to zero 
+- no support for rounding modes apart from round to zero 
 
 ## BFloat16 
 
@@ -72,21 +72,17 @@ make run_bf16_add
 
 #### Waves
 
-Waves are dumped by default, to dissable the waves undefine the `wave` argument 
-when building the testbench. This is recomended during batch testing as 
+Waves are dumped by default, to disable the waves undefine the `wave` argument 
+when building the testbench. This is recommended during batch testing as 
 the full waves can occupy upwards of 1.6TB. 
-
-eg: 
 ```
 make run_bf16_add wave=
 ```
 
 #### Verbose logs
 
-Verbose debug logs are dissabled by default, invoking make with the `debug` argument 
+Verbose debug logs are disabled by default, invoking make with the `debug` argument 
 enables it.
-
-eg:
 ```
 make run_bf16_add debug=1
 ```
@@ -94,32 +90,42 @@ make run_bf16_add debug=1
 #### Simulator 
 
 To run the testbench with icarus verilog, invoke the testbench with the `SIM=1` argument
-
-eg:
 ```
 make run_lzc SIM=1
 ```
 
 
+## Misc
+
+Developement notes can be found [here](doc/notes.md). 
+
+Given behavior of C++ `bfloat16_t` is implementation defined, the code in the `cpu_test` 
+directory is used to identify local hardware's behavior. This code is portable and 
+has been tested on both `x86_64` and `armv9`, to build and run: 
+```
+cd cpu_test
+make run
+```
 
 ## Release v1.0 vs v2.0 NaN/inf support
 
 Initially the desire was to NOT add support for NaN, 
-then due to a improper preconseption regarding the behavior of
-round to zero on overflows proper support for NaN and $/infty$
+then due to an improper preconcived understanding in regards to the behavior of
+round towards zero on overflows, proper support for NaN and $\infty$
 was implemented and full tested. 
 
-The belief that an operation overflow could produce an $\intfy$
+The belief: that an operation overflow could produce an $\infty,
 lead me to conclude that since, $\pm \infty$ are limits, and there is no mathematically correct
 solution $\pm \infty \times 0$ `NaN` support was necessary. 
 
-Given the validation was quite far along and some users may need NaN and $\infty$ support I 
+Given the validation was far enough along and some users may need NaN and $\infty$ support I 
 decided to keep them and package this as the `v1.0` release. 
 
-During implementation I realized that according to the IEEE-574 prescription of round to zero's
-behavior on overflow, reaching $\infty$ wasn't possible. 
+Once I realized that according to the IEEE-574 prescription of round towards zero's
+behavior on overflow implied reaching $\infty$ was impossible, it became possible to 
+remove them. 
 Given my usecase doesn't require NaN or $\infty$ support and my aim to optimize for area and performance I 
-have decided to remove support and the associated hardware for NaN and $\infty$ in the `v2.0` release. 
+decided to remove support and the associated hardware for NaN and $\infty$ in the `v2.0` release. 
 
 ## References 
 
