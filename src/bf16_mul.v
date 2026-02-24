@@ -37,10 +37,16 @@ wire [E:0] eab; // ea + eb
 wire [E:0] eab_diff, eab_diff_min1;
 wire       eab_diff_carry;
 wire       eab_diff_min1_carry;
+wire       a_nzero, b_nzero; 
+wire       ab_zero; 
  
 assign eab = ea_i + eb_i; 
 assign {eab_diff_carry, eab_diff} = eab - B; 
 assign {eab_diff_min1_carry, eab_diff_min1} = eab - B_MIN_1; 
+
+// don't need to check mantissa since we don't support subnormal numbers
+assign {a_nzero, b_nzero} = {|ea_i, |eb_i}; 
+assign ab_zero = ~a_nzero | ~b_nzero;
 
 // detect under/overflow, mul MSB is on critical path, so 
 // detecting and correcting for overflow before normalization
@@ -48,9 +54,9 @@ wire eab_diff_overflow, eab_diff_underflow;
 wire eab_diff_min1_overflow, eab_diff_min1_underflow; 
 
 assign eab_diff_overflow = eab_diff[E] & ~eab_diff_carry;
-assign eab_diff_underflow = eab_diff_carry;
+assign eab_diff_underflow = eab_diff_carry | ab_zero;
 assign eab_diff_min1_overflow = eab_diff_min1[E] & ~eab_diff_min1_carry;
-assign eab_diff_min1_underflow = eab_diff_min1_carry;
+assign eab_diff_min1_underflow = eab_diff_min1_carry | ab_zero;
 
 wire [E-1:0] eab_diff_cor, eab_diff_min1_cor;
 // on overflow round toward zero clamps at largest finite floating point number e = 8'FE
@@ -65,11 +71,9 @@ assign eab_diff_min1_cor = {E{~eab_diff_min1_underflow}}
 localparam int P2 = 2*(M+1); // double the size of the precision p=m+1 (hidden bit) 
  
 wire [M:0] ma, mb; // include hidden bit
-wire       a_nzero, b_nzero; 
 wire [P2-1:0] mz; // ma*mb =mz
 
-// don't need to check mantissa since we don't support subnormal numbers
-assign {a_nzero, b_nzero} = {|ea_i, |eb_i}; 
+
 assign {ma, mb} = {{a_nzero, ma_i}, {b_nzero, mb_i}}; // hidden bit is 0 on 0.0
 
 // can't reuse existing 8 bit booth radix-4 multiplier because it was 
