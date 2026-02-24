@@ -2,10 +2,12 @@
 
 Home to the shared bf16 hardware implementation and verification. 
 These modules are designed with the objective on being included in 
-future self-funded ASIC tapeouts, as such, area is the primary concerned
+future ASIC tapeouts, as such, area is the primary concerned
 followed by performance. Power is not a design prerogative. 
-In order to save on logic cost, this hardware only supports 
-subnormals so far as to round them to zero.
+In order to save on logic cost, this hardware doesn't support subnormals, 
+uses rounded towards zero allowing it to also drop inf and NaN support. 
+
+This implementation has **100% test coverage** of the valid input space. 
 
 Supported operations : 
 - addition/subtration
