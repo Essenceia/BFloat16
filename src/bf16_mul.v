@@ -24,7 +24,6 @@ module bf16_mul #(
 	input wire [E-1:0] eb_i,
 	input wire [M-1:0] mb_i,
 
-
 	output wire s_o,
 	output wire [E-1:0] e_o,
 	output wire [M-1:0] m_o
@@ -48,9 +47,9 @@ assign {eab_diff_min1_carry, eab_diff_min1} = eab - B_MIN_1;
 wire eab_diff_overflow, eab_diff_underflow; 
 wire eab_diff_min1_overflow, eab_diff_min1_underflow; 
 
-assign eab_diff_overflow = eab_diff[E];
+assign eab_diff_overflow = eab_diff[E] & ~eab_diff_carry;
 assign eab_diff_underflow = eab_diff_carry;
-assign eab_diff_min1_overflow = eab_diff_min1[E];
+assign eab_diff_min1_overflow = eab_diff_min1[E] & ~eab_diff_min1_carry;
 assign eab_diff_min1_underflow = eab_diff_min1_carry;
 
 wire [E-1:0] eab_diff_cor, eab_diff_min1_cor;
