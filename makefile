@@ -192,10 +192,7 @@ $(eval $(foreach x,$(tbs),$(call run_recipe,$x)))
 $(eval $(foreach x,$(tbs),$(call build_recipe,$x)))
 
 # build and run full test suite
-test: 
-	run_lzc
-	run_bf16_add
-	run_bf16_mul
+test: run_lzc run_bf16_add run_bf16_mul
 
 # Cleanup
 clean:
