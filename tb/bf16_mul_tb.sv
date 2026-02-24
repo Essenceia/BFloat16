@@ -155,7 +155,7 @@ initial begin
 	test_dpi();
 	`endif
 	#1
-	test_batch(16'h3f81,16'h7f7f);
+	test_batch(0,0);
 `endif
 
 	$finish; 
