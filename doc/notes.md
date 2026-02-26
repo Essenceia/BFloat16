@@ -167,7 +167,7 @@ for any $y, y \geq 0$ using `bfloat16_t` then $y +3.389531e+38 = 3.389531e+38$.
 
 ### Impact on NaN and inf
 
-This realization that operations will never overflow to $infty$ forces me to re-evaluate the
+This realization that operations will never overflow to $\infty$ forces me to re-evaluate the
 need to add support for inf and NaN to the hardware, given these can now, never get
 produced as long as they are not feed as inputs. 
 
