@@ -141,7 +141,7 @@ These modules are currently being integrated as part of a larger ASIC targeting 
 the design might be re-visited depending on the area and timing constraints. 
 
 Although for now the need for modifications isn't confirmed, if there was a change needed, it would most
-likely be to improve timing through the adder far path. 
+likely be to improve timing through the adder close path. 
 As such, it is quite possible that a `v4.0` might include a leading zero anticipation logic.
 
 ## References 
