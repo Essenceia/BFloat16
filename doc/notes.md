@@ -163,7 +163,7 @@ b: 16'h7f7f | 16'b0_11111110_1111111 | 3.389531e+38
 c: 16'h7f7f | 16'b0_11111110_1111111 | 3.389531e+38
 ```
 We can see that `3.389531e+38` is actually already the largest representable number so 
-for any $y, y /geq 0$ using `bfloat16_t$ then $y +3.389531e+38 = 3.389531e+38$.
+for any $y, y \geq 0$ using `bfloat16_t` then $y +3.389531e+38 = 3.389531e+38$.
 
 ### Impact on NaN and inf
 
