@@ -84,7 +84,7 @@ wire [M:0] ma, mb; // include hidden bit
 wire [P2-1:0] mz; // ma*mb =mz
 
 
-assign {ma, mb} = {{1'b1, ma_i}, {1'b1, mb_i}}; // hidden bit is 0 on 0.0
+assign {ma, mb} = {{1'b1, ma_i}, {1'b1, mb_i}}; // zero case will be handled by zero masked on output
 
 // can't reuse existing 8 bit booth radix-4 multiplier because it was 
 // optimized for signed numbers, these are unsigned.

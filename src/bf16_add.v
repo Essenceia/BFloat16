@@ -45,10 +45,10 @@ wire [E-1:0] ex, ey, exy_diff;
 wire [M-1:0] mx, my;
 wire         sx, sy_unused;
 wire [E-1:0] eab_diff, eba_diff;
-wire         eab_diff_carry, eba_diff_carry;
+wire         eab_diff_carry, eba_diff_carry_unused;
 
 assign {eab_diff_carry, eab_diff} = ea_i - eb_i;
-assign {eba_diff_carry, eba_diff} = eb_i - ea_i;
+assign {eba_diff_carry_unused, eba_diff} = eb_i - ea_i;
 
 assign exy_diff = ~eab_diff_carry ? eab_diff: eba_diff;
 assign {ex, ey} = ~eab_diff_carry ? {ea_i, eb_i}: {eb_i, ea_i}; 
@@ -59,7 +59,7 @@ assign {sx, sy_unused} = ~eab_diff_carry ? {sa_i, sb_i}: {sb_i, sa_i};
 // case where N - N / -N + N = +0
 wire mab_eq, exy_eq, xy_eq;
 assign mab_eq = ma_i == mb_i; // if they are equal, we don't care about swap
-assign exy_eq = ~eab_diff_carry & ~eba_diff_carry; // 1 = equal, 0 = not equal 
+assign exy_eq = ea_i == eb_i; // 1 = equal, 0 = not equal, also don't care about swap if they are equal
 assign xy_eq  = mab_eq & exy_eq; 
 
 // identify corner cases : 
