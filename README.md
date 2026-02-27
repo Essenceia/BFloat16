@@ -1,11 +1,12 @@
 # BFloat16 hardware implementation 
 
-Home to the shared bf16 hardware implementation and verification. 
-These modules are designed with the objective on being included in 
-future ASIC tapeouts, as such, area is the primary concerned
-followed by performance. Power is not a design prerogative. 
-In order to save on logic cost, this hardware doesn't support subnormals, 
-uses rounded towards zero allowing it to also drop inf and NaN support. 
+High performance bfloat16 adder and multiplier hardware implementation and verification.
+
+These modules are designed to be included in 
+future ASIC tapeouts, performance and area is the primary concerneds, and power is not a design prerogative. 
+
+In order to increase performance and save on logic cost, this hardware doesn't support subnormals, 
+uses only rounded towards zero allowing it to also drop inf and NaN support. 
 
 This implementation has **100% test coverage** of the valid input space. 
 
@@ -134,10 +135,19 @@ decided to remove support and the associated hardware for NaN and $\infty$ in th
 Given the validation was far enough along and some users may need NaN and $\infty$ support I 
 decided finish testing and keep them, then package this as the `v1.0` release. 
 
+## Future plans
+
+These modules are currently being integrated as part of a larger ASIC targeting the IHP 130nm and
+the design might be re-visited depending on the area and timing constraints. 
+
+Although for now the need for modifications isn't confirmed, if there was a change needed, it would most
+likely be to improve timing through the adder close path. 
+As such, it is quite possible that a `v4.0` might include a leading zero anticipation logic.
+
 ## References 
 
 - IEEE-754, IEEE Standard for Floating-Point Arithmetic
-- Handbook of Floating-Point Arithmetic - Jean-Michel Muller • Nicolas Brunie, Florent de Dinechin, Claude-Pierre Jeannerod, Mioara Joldes, Vincent Lefèvre, Guillaume Melquiond, Nathalie Revol, Serge Torres
+- Handbook of Floating-Point Arithmetic - Jean-Michel Muller, Nicolas Brunie, Florent de Dinechin, Claude-Pierre Jeannerod, Mioara Joldes, Vincent Lefèvre, Guillaume Melquiond, Nathalie Revol, Serge Torres
 
 ## License
 

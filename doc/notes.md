@@ -163,16 +163,79 @@ b: 16'h7f7f | 16'b0_11111110_1111111 | 3.389531e+38
 c: 16'h7f7f | 16'b0_11111110_1111111 | 3.389531e+38
 ```
 We can see that `3.389531e+38` is actually already the largest representable number so 
-for any $y, y /geq 0$ using `bfloat16_t$ then $y +3.389531e+38 = 3.389531e+38$.
+for any $y, y \geq 0$ using `bfloat16_t` then $y +3.389531e+38 = 3.389531e+38$.
 
 ### Impact on NaN and inf
 
-This realization that operations will never overflow to $infty$ forces me to re-evaluate the
+This realization that operations will never overflow to $\infty$ forces me to re-evaluate the
 need to add support for inf and NaN to the hardware, given these can now, never get
 produced as long as they are not feed as inputs. 
 
 The current plan is to finish a v1 with the support for inf and NaN and then remove them
 in a v2.
+
+# Implementation 
+
+## Synthesis rendering booth multiplier
+
+Enabled `"SYNTH_MUL_BOOTH": "True"` in implementation config and yosys is correctly identifying the multiplier to an **unsigned** booth multiplier for remapping:
+```
+82. Executing BOOTH pass (map to Booth multipliers).
+Mapping cell $mul$/home/gp/asic/mac_dft_v2/src/bf16/src/booth_unsigned_mul.v:18$343 to unsigned Booth multiplier
+Mapped 1 multipliers.
+```
+The result cost 320 cells occupying `3354` of area, which is very reasonable : 
+```
+=== $paramod\booth_unsigned_mul\W=s32'00000000000000000000000000001000 ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        |
+      307        - wires
+      336        - wire bits
+        3        - public wires
+       32        - public wire bits
+        3        - ports
+       32        - port bits
+      320 3.35E+03 cells
+        9  114.307   sg13g2_a21o_1
+       34  308.448   sg13g2_a21oi_1
+        3   43.546   sg13g2_a221oi_1
+       19  206.123   sg13g2_a22oi_1
+       15   136.08   sg13g2_and2_1
+       10  127.008   sg13g2_and3_1
+        1   14.515   sg13g2_and4_1
+       12   65.318   sg13g2_inv_1
+        2   36.288   sg13g2_mux2_1
+       27  195.955   sg13g2_nand2_1
+       17  154.224   sg13g2_nand2b_1
+       27  244.944   sg13g2_nand3_1
+        1   10.886   sg13g2_nand4_1
+       13   94.349   sg13g2_nor2_1
+       15   136.08   sg13g2_nor2b_1
+        5    45.36   sg13g2_nor3_1
+        1   10.886   sg13g2_nor4_1
+       25    226.8   sg13g2_o21ai_1
+        4   36.288   sg13g2_or2_1
+        8  101.606   sg13g2_or3_1
+       47  682.214   sg13g2_xnor2_1
+       25   362.88   sg13g2_xor2_1
+
+   Chip area for module '$paramod\booth_unsigned_mul\W=s32'00000000000000000000000000001000': 3354.107400
+     of which used for sequential elements: 0.000000 (0.00%)
+```
+Area cost 
+```
+
+        7   50.803   sg13g2_tiehi
+       47  682.214   sg13g2_xnor2_1
+       26  377.395   sg13g2_xor2_1
+        1        - submodules
+        1        -   $paramod\lzc\W=s32'00000000000000000000000000010000
+
+   Chip area for module '\bf16_add': 5400.599400
+     of which used for sequential elements: 0.000000 (0.00%)
+```
 
 ## License
 
