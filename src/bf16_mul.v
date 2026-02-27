@@ -84,13 +84,13 @@ wire [M:0] ma, mb; // include hidden bit
 wire [P2-1:0] mz; // ma*mb =mz
 
 
-assign {ma, mb} = {{a_nzero, ma_i}, {b_nzero, mb_i}}; // hidden bit is 0 on 0.0
+assign {ma, mb} = {{1'b1, ma_i}, {1'b1, mb_i}}; // hidden bit is 0 on 0.0
 
 // can't reuse existing 8 bit booth radix-4 multiplier because it was 
 // optimized for signed numbers, these are unsigned.
 // will be using the yosys's abc synthesized radix4 booth multiplier
 // for unsigned
-booth_unsigned_mul #(.W(M+1)) m_mul(
+booth_unsigned_mul #(.W(M+1)) m_booth_radix4_unsugned_mul(
 	.x_i(ma),
 	.y_i(mb),
 	.z_o(mz)
