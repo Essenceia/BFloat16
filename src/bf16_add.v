@@ -208,18 +208,18 @@ end
 
 // normalize exponent
 wire [E-1:0] ex_lzc_cp_diff;
-wire         ex_lzc_cp_diff_carry; // TODO: overflow detection
 wire         ez_cp_underflow;
 wire [E-1:0] ez_cp_norm;
 
-assign {ex_lzc_cp_diff_carry, ex_lzc_cp_diff} = ex - {{E-LZC_W{1'b0}}, zero_cnt}; 
-assign ez_cp_underflow = ex_lzc_cp_diff_carry;// detect undexflow, going to 0
+assign {ez_cp_underflow, ex_lzc_cp_diff} = ex - {{E-LZC_W{1'b0}}, zero_cnt}; 
 
 assign ez_cp_norm = {E{~ez_cp_underflow & ~xy_eq}} & ex_lzc_cp_diff; 
 
 // denomral round to 0: mantissa correction 
 logic [M-1:0] mz_cp_norm;
-assign mz_cp_norm = {M{~(exy_eq | ~|ez_cp_norm) }} & mz_cp_norm_lite[M:1];
+logic ex_eq_zero_cnt; 
+assign ex_eq_zero_cnt = ~|ex[E-1:LZC_W] & (ex[LZC_W-1:0] == zero_cnt);
+assign mz_cp_norm = {M{~(xy_eq | ex_eq_zero_cnt |ez_cp_underflow) }} & mz_cp_norm_lite[M:1];// critical path through underflow
 
 /* ---------------------------------
  * select between close and far path
