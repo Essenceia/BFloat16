@@ -25,5 +25,5 @@ assign x1 = (data_rev & ~data_p1);
 assign lzc_o[3] = ~|data_i;//data_i == 8'd0
 assign lzc_o[0] = |(x1 & 8'haa);
 assign lzc_o[1] = |(x1 & 8'hcc);
-assign lzc_o[2] = |(x1 & 8'hf0};
+assign lzc_o[2] = |(x1 & 8'hf0);
 endmodule

@@ -176,13 +176,22 @@ localparam int LZC_W = $clog2(M+3);
 localparam int LZC_V_W = $rtoi($pow(2, $clog2(M+2)));
 wire [LZC_W-1:0] zero_cnt;
 wire             zero_cnt_unused;
+/* verilator lint_off UNUSEDSIGNAL */
 wire [LZC_V_W-1:0] lzc_data;
+/* verilator lint_on UNUSEDSIGNAL */
 
 assign lzc_data = { mxy_cp_abs_diff, {LZC_V_W-(M+2){1'b1}}};
 
+/*
 lzc #(.W(LZC_V_W)) m_lzc (
 	.data_i(lzc_data),	
 	.cnt_o({zero_cnt_unused, zero_cnt})
+);
+*/
+
+wide_mux m_wide_mux (
+	.data_i(mxy_cp_abs_diff[7:0]),
+	.lzc_o(zero_cnt)
 );
 
 // variable shift : renormalization 
