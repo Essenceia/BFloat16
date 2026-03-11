@@ -183,13 +183,13 @@ assign lzc_data = { mxy_cp_abs_diff, {LZC_V_W-(M+2){1'b1}}};
 
 lzc #(.W(LZC_V_W)) m_lzc (
 	.data_i(lzc_data),	
-	.cnt_o({zero_cnt_unused, zero_cnt})
+	.zero_cnt({zero_cnt_unused, zero_cnt})
 );
 */
 
 pmux m_pmux(
 	.data_i(mxy_cp_abs_diff),
-	.cnt_o(zero_cnt)
+	.zero_cnt(zero_cnt)
 );
 
 // variable shift : renormalization 

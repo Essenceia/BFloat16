@@ -22,7 +22,7 @@ module lzc_leaf (
 
 assign cnt_o[1] = ~pair_i[1] & ~pair_i[0]; // pair == 00
 assign cnt_o[0] = ~pair_i[1] & pair_i[0]; // pair == 01
-endmodule; 
+endmodule 
 
 /* Inner tree levels
  *
