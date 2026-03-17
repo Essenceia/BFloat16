@@ -135,6 +135,12 @@ decided to remove support and the associated hardware for NaN and $\infty$ in th
 Given the validation was far enough along and some users may need NaN and $\infty$ support I 
 decided finish testing and keep them, then package this as the `v1.0` release. 
 
+## Why no FMA ? 
+
+This implementation is designed with hardware cost as a corner stone, the width of the significant
+path alone on an FMA makes it a very expensive proposition. Although precision is lost when using a 
+multiply + add as there are 2 roundings rather than 1, the relative importance of precision for my usecase made the tradeoff whortwhile. 
+
 ## Future plans
 
 These modules are currently being integrated as part of a larger ASIC targeting the IHP 130nm and
