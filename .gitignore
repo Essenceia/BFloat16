@@ -3,3 +3,4 @@ obj_dir/**
 wave
 build
 *.o
+*.swp
