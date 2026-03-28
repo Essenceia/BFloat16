@@ -97,7 +97,6 @@ localparam int P2 = 2*(M+1); // double the size of the precision p=m+1 (hidden b
  
 wire [M:0] ma, mb; // include hidden bit
 wire [P2-1:0] mz; // ma*mb =mz
-reg  [P2-1:0] mz_q;
 
 
 assign {ma, mb} = {{1'b1, ma_i}, {1'b1, mb_i}}; // zero case will be handled by zero masked on output
@@ -106,14 +105,14 @@ assign {ma, mb} = {{1'b1, ma_i}, {1'b1, mb_i}}; // zero case will be handled by 
 // optimized for signed numbers, these are unsigned.
 // will be using the yosys's abc synthesized radix4 booth multiplier
 // for unsigned
-booth_unsigned_mul #(.W(M+1)) m_booth_radix4_unsugned_mul(
-	.x_i(ma),
-	.y_i(mb),
-	.z_o(mz)
-); 
+booth_unsigned_mul_pipelined m_booth_radix4_unsugned_mul(
+	.clk(clk),
 
-always @(posedge clk) 
-	mz_q <= mz; 
+	.data_i(ma),
+	.w_i(mb),
+
+	.res_o(mz)
+); 
 
 // normalize 
 wire [E-1:0] ez_norm;
@@ -123,12 +122,12 @@ wire [M-1:0] mz_norm_lite;
 wire [M-1:0] mz_norm; 
 wire         mz_msb; 
 
-assign mz_msb  = mz_q[P2-1];
+assign mz_msb  = mz[P2-1];
 assign ez_norm = mz_msb? eab_diff_min1_cor_q: eab_diff_cor_q;
 assign z_zero  = mz_msb? eab_diff_min1_zero_q: eab_diff_zero_q;
 assign z_max   = mz_msb? eab_diff_min1_overflow_q: eab_diff_overflow_q;
 
-assign mz_norm_lite = mz_msb ? mz_q[P2-2-:M] : mz_q[P2-3-:M];
+assign mz_norm_lite = mz_msb ? mz[P2-2-:M] : mz[P2-3-:M];
 assign mz_norm = mz_norm_lite & {M{~z_zero}} | {M{z_max}};
 
 /* result */ 
