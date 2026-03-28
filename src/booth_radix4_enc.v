@@ -43,7 +43,7 @@ assign single_mask = {9{single}};
 assign shift_mask = {8{shift}};
 assign neg_mask  = {9{neg}};
 
-assign post_shift = {{data_i[7], data_i} & single_mask} | {data_i & shift_mask, 1'b0};
+assign post_shift = {{1'b0, data_i} & single_mask} | {data_i & shift_mask, 1'b0};
 assign res_o = post_shift ^ neg_mask; 
 assign sign_o = neg; 
 assign ext_o = res_o[8];
