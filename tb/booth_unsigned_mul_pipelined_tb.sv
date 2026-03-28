@@ -11,6 +11,7 @@
 
 module booth_unsigned_mul_pipelined_tb;
 localparam W = 8;
+localparam MAX_VAL = $pow(2,W) - 1;
 
 // x*y = res
 logic [31:8]    a_unused, b_unused;
@@ -20,15 +21,14 @@ logic clk = 1'b0;
 
 task test_mul();
 
-	for(int i=0; i < `TEST_RAND_ITER; i++) begin
-		//{a_unused, a} = $urandom();	
-		{a_unused, a} = i;
-		//{b_unused, b} = $urandom();	
-		{b_unused, b} = i;
-		exp = a * b;
-		#10
-		$display("iter %d",i);
-		sva_match: assert(exp == res);
+	for(int i=0; i < MAX_VAL; i++) begin
+		for(int y=0; y < MAX_VAL; y++) begin
+			{a_unused, a} = i;
+			{b_unused, b} = y;
+			exp = a * b;
+			#10
+			sva_match: assert(exp == res);
+		end
 	end	
 endtask
 
