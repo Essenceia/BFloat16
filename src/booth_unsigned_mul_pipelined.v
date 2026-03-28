@@ -12,7 +12,7 @@ module booth_unsigned_mul_pipelined(
 // Parital products  
 // PP0
 wire [8:0] pp0_enc;
-wire       pp0_e, pp0_s;
+wire       pp0_e_unused, pp0_s;
 wire [11:0] pp0;
 
 booth_radix4_enc m_enc0(
@@ -20,14 +20,14 @@ booth_radix4_enc m_enc0(
 	.data_i(data_i),
 
 	.res_o(pp0_enc),
-	.ext_o(pp0_e),
+	.ext_o(pp0_e_unused),
 	.sign_o(pp0_s)
 );
-assign pp0 = {~pp0_e, {2{pp0_e}}, pp0_enc};
+assign pp0 = {~pp0_s, {2{pp0_s}}, pp0_enc};
 
 // PP1
 wire [8:0]  pp1_enc;
-wire        pp1_e, pp1_s;
+wire        pp1_e_unused, pp1_s;
 wire [10:0] pp1;
 
 booth_radix4_enc m_enc1(
@@ -35,14 +35,14 @@ booth_radix4_enc m_enc1(
 	.data_i(data_i),
 
 	.res_o(pp1_enc),
-	.ext_o(pp1_e),
+	.ext_o(pp1_e_unused),
 	.sign_o(pp1_s)
 );
-assign pp1 = {1'b1, ~pp1_e, pp1_enc};
+assign pp1 = {1'b1, ~pp1_s, pp1_enc};
 
 // PP2
 wire [8:0]  pp2_enc;
-wire        pp2_e, pp2_s;
+wire        pp2_e_unused, pp2_s;
 wire [10:0] pp2;
 
 booth_radix4_enc m_enc2(
@@ -50,14 +50,14 @@ booth_radix4_enc m_enc2(
 	.data_i(data_i),
 
 	.res_o(pp2_enc),
-	.ext_o(pp2_e),
+	.ext_o(pp2_e_unused),
 	.sign_o(pp2_s)
 );
-assign pp2 = {1'b1, ~pp2_e, pp2_enc};// PP2
+assign pp2 = {1'b1, ~pp2_s, pp2_enc};// PP2
 
 // PP3
 wire [8:0]  pp3_enc;
-wire        pp3_e, pp3_s;
+wire        pp3_e_unused, pp3_s;
 wire [9:0] pp3;
 
 booth_radix4_enc m_enc3(
@@ -65,10 +65,10 @@ booth_radix4_enc m_enc3(
 	.data_i(data_i),
 
 	.res_o(pp3_enc),
-	.ext_o(pp3_e),
+	.ext_o(pp3_e_unused),
 	.sign_o(pp3_s)
 );
-assign pp3 = {~pp3_e, pp3_enc};
+assign pp3 = {~pp3_s, pp3_enc};
 
 // PP4
 wire [7:0]  pp4;
@@ -79,11 +79,11 @@ assign pp4 = {8{w_i[7]}} & data_i; // can only be 1 or 0 since encoding is 0 ext
 wire [13:0] add0_0; 
 wire [14:0] add0_1; 
 
-assign add0_0 = {1'b0, pp0} 
-              + {pp1, 1'b0, pp0_s};
+assign add0_0 = {2'd0, pp0} // 13
+              + {pp1, 1'b0, pp0_s};//13 
 
-assign add0_1 = {1'b0, pp2, 1'b0,  pp1_s}
-              + {pp3, 1'b0, pp2_s, 2'b0}
+assign add0_1 = {1'b0, pp2, 1'b0,  pp1_s} //14
+              + {pp3, 1'b0, pp2_s, 2'b0}  //14 
               + {pp4, 1'b0, pp3_s, 4'b0}; 
 
 reg [13:0] add0_0_q;
@@ -99,6 +99,13 @@ wire unused_add1_carry; // carry value can be pre-computed
 
 assign {unused_add1_carry, add1 } = {3'b0, add0_0_q}
                                   + {add0_1_q, 2'b0};
+
+/* verilator lint_off UNUSEDSIGNAL */
+wire [16:0] debug_a0;
+wire [16:0] debug_a1;
+assign debug_a0 = {3'b0, add0_0_q};
+assign debug_a1 = {add0_1_q, 2'b0};
+/* verilator lint_on UNUSEDSIGNAL */
 
 assign res_o = add1;
  
