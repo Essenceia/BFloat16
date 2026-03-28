@@ -161,8 +161,9 @@ endif
 lzc_deps += $(TB_DIR)/lzc_tb.sv $(SRC_DIR)/lzc.v
 bf16_add_deps += $(TB_DIR)/bf16_add_tb.sv $(TB_DIR)/tb_utils.sv $(SRC_DIR)/lzc.v $(SRC_DIR)/bf16_add.v
 bf16_mul_deps += $(TB_DIR)/bf16_mul_tb.sv $(TB_DIR)/tb_utils.sv $(SRC_DIR)/booth_unsigned_mul.v $(SRC_DIR)/bf16_mul.v
+booth_deps += $(TB_DIR)/booth_unsigned_mul_pipelined_tb.sv $(SRC_DIR)/booth_unsigned_mul_pipelined.v $(SRC_DIR)/booth_radix4_enc.v
 
-tbs := lzc bf16_add bf16_mul
+tbs := lzc bf16_add bf16_mul booth
 
 # The list of testbenches.
 ifeq ($(SIM),I)
