@@ -70,27 +70,32 @@ assign eab_diff_min1_zero = ~|eab_diff_min1[E:0] | eab_diff_min1_underflow;
 assign eab_diff_min1_clamp_max = &eab_diff_min1[E-1:1];
 assign eab_diff_clamp_max = &eab_diff[E-1:1];
 
-wire [E-1:0] eab_diff_cor, eab_diff_min1_cor;
+wire [E-1:0] eab_diff_cor, eab_diff_min1_cor_lite;
 // on overflow round toward zero clamps at largest finite floating point number e = 8'FE
 // using consecutive masking logic to save on a mux being mistakenly infered, exploiting the
 // fact overflow and underflow are exclusive 
 assign eab_diff_cor = {E{~eab_diff_underflow}} 
 					& {{{E-1{eab_diff_overflow | eab_diff_clamp_max}} | eab_diff[E-1:1]}, ~(eab_diff_overflow | eab_diff_clamp_max) & eab_diff[0]};
-assign eab_diff_min1_cor = {E{~eab_diff_min1_underflow}} 
-					     & {{{E-1{eab_diff_min1_overflow | eab_diff_min1_clamp_max}} | eab_diff_min1[E-1:1]}, ~(eab_diff_min1_overflow | eab_diff_min1_clamp_max) & eab_diff_min1[0]};
+assign eab_diff_min1_cor_lite = {{{E-1{eab_diff_min1_overflow | eab_diff_min1_clamp_max}} | eab_diff_min1[E-1:1]}, ~(eab_diff_min1_overflow | eab_diff_min1_clamp_max) & eab_diff_min1[0]};
 // extra cycle
-reg  [E-1:0] eab_diff_cor_q, eab_diff_min1_cor_q;
+reg  [E-1:0] eab_diff_cor_q, eab_diff_min1_cor_lite_q;
 reg          eab_diff_zero_q, eab_diff_min1_zero_q; 
 reg          eab_diff_overflow_q, eab_diff_min1_overflow_q;
+reg          eab_diff_min1_underflow_q, eab_diff_underflow_q;
 
 always @(posedge clk) begin
-	eab_diff_min1_cor_q       <= eab_diff_min1_cor;
+	eab_diff_min1_cor_lite_q       <= eab_diff_min1_cor_lite;
 	eab_diff_cor_q            <= eab_diff_cor;
 	eab_diff_zero_q           <= eab_diff_zero;
 	eab_diff_min1_zero_q      <= eab_diff_min1_zero;
 	eab_diff_min1_overflow_q  <= eab_diff_min1_overflow;
 	eab_diff_overflow_q       <= eab_diff_overflow;
+	eab_diff_min1_underflow_q <= eab_diff_min1_underflow;
+	eab_diff_underflow_q      <= eab_diff_underflow;
 end
+
+wire [E-1:0] eab_diff_min1_cor;
+assign eab_diff_min1_cor = {E{~eab_diff_min1_underflow_q}} & eab_diff_min1_cor_lite_q;
 
 /* significant multiplication */
 localparam int P2 = 2*(M+1); // double the size of the precision p=m+1 (hidden bit) 
@@ -123,7 +128,7 @@ wire [M-1:0] mz_norm;
 wire         mz_msb; 
 
 assign mz_msb  = mz[P2-1];
-assign ez_norm = mz_msb? eab_diff_min1_cor_q: eab_diff_cor_q;
+assign ez_norm = mz_msb? eab_diff_min1_cor: eab_diff_cor_q;
 assign z_zero  = mz_msb? eab_diff_min1_zero_q: eab_diff_zero_q;
 assign z_max   = mz_msb? eab_diff_min1_overflow_q: eab_diff_overflow_q;
 
