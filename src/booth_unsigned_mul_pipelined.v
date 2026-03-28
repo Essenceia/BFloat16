@@ -80,11 +80,11 @@ wire [13:0] add0_0;
 wire [14:0] add0_1; 
 
 assign add0_0 = {1'b0, pp0} 
-                              + {pp1, 1'b0, pp0_s};
+              + {pp1, 1'b0, pp0_s};
 
 assign add0_1 = {1'b0, pp2, 1'b0,  pp1_s}
-		                	  + {pp3, 1'b0, pp2_s, 2'b0}
-                              + {pp4, 1'b0, pp3_s, 4'b0}; 
+              + {pp3, 1'b0, pp2_s, 2'b0}
+              + {pp4, 1'b0, pp3_s, 4'b0}; 
 
 reg [13:0] add0_0_q;
 reg [14:0] add0_1_q;

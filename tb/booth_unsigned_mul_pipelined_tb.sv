@@ -3,7 +3,7 @@
 `endif
 
 `ifndef TEST_RAND_ITER
-`define TEST_RAND_ITER 100
+`define TEST_RAND_ITER 10000
 `endif
 
 `default_nettype none
@@ -21,12 +21,14 @@ logic clk = 1'b0;
 task test_mul();
 
 	for(int i=0; i < `TEST_RAND_ITER; i++) begin
-		{a_unused, a} = $urandom();	
-		{b_unused, b} = $urandom();	
+		//{a_unused, a} = $urandom();	
+		{a_unused, a} = i;
+		//{b_unused, b} = $urandom();	
+		{b_unused, b} = i;
 		exp = a * b;
 		#10
-		sva_match: assert(exp == res);
 		$display("iter %d",i);
+		sva_match: assert(exp == res);
 	end	
 endtask
 
@@ -35,7 +37,7 @@ always #5 clk <= !clk;
 initial begin
 	$dumpfile("wave/booth_unsigned_mul_pipelined_tb.vcd");
 	$dumpvars(0, booth_unsigned_mul_pipelined_tb);
-
+	#4	
 	$urandom(`RAND_SEED);
 	
 	test_mul();

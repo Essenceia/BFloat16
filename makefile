@@ -199,6 +199,6 @@ test: run_lzc run_bf16_add run_bf16_mul
 clean:
 	rm -f vgcore.* vgd.log*
 	rm -f callgrind.out.*
-	rm -fr $(WAVE_DIR)/*
+	rm -fr ./$(WAVE_DIR)/*
 	rm -fr build/*
 	rm -fr obj_dir/*
